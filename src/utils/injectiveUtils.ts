@@ -33,7 +33,7 @@ const broadcastTx = async (chainId: string, txRaw: TxRaw) => {
   return Buffer.from(result).toString('hex');
 };
 
-export const executeContractCall = async (
+export const executeInjectiveContractCall = async (
   chainId: string,
   contractAddress: string,
   txMsg: any,

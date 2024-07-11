@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CosmosChains } from '../constants/chains';
-import { executeContractCall } from '../utils/injectiveUtils';
 import { CosmosContracts } from '../constants/contracts';
+import { executeInjectiveContractCall } from '../utils/injectiveUtils';
 
 const CosmosApprovalPage = () => {
   const [proposalInput, setProposalInput] = useState('');
@@ -17,7 +17,7 @@ const CosmosApprovalPage = () => {
         vote: voteValue,
       },
     };
-    const res = await executeContractCall(chainId, contractAddress, txMsg);
+    const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
     if (res) {
       console.log('Transaction Success. TxHash', res);
       setTxnHash(res);
