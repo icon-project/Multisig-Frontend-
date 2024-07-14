@@ -4,14 +4,14 @@ const ENV_NETWORK_NAME = ENV === 'prod' ? 'mainnet' : 'testnet';
 
 const CosmosChainsConfig = {
   mainnet: {
-    archway: 'archway-1',
-    injective: 'injective-1',
-    neutron: 'neutron-1',
+    archway: { chainId: 'archway-1', chainName: 'archway' },
+    injective: { chainId: 'injective-1', chainName: 'injective' },
+    neutron: { chainId: 'neutron-1', chainName: 'neturon' },
   },
   testnet: {
-    archway: 'constantine-3',
-    injective: 'injective-888',
-    neutron: 'pion-1',
+    archway: { chainId: 'constantine-3', chainName: 'archwaytestnet' },
+    injective: { chainId: 'injective-888', chainName: 'injectivetestnet' },
+    neutron: { chainId: 'pion-1', chainName: 'neutrontestnet' },
   },
 };
 

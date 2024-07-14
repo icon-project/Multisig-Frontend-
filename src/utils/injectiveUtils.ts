@@ -60,6 +60,7 @@ export const executeInjectiveContractCall = async (
     const msg = MsgExecuteContract.fromJSON({
       sender: injectiveAddress,
       contractAddress: contractAddress,
+    //   contract: contractAddress,
       msg: txMsg,
     });
 

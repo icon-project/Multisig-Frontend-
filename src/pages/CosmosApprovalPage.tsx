@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CosmosChains } from '../constants/chains';
 import { CosmosContracts } from '../constants/contracts';
 import { executeInjectiveContractCall } from '../utils/injectiveUtils';
+import { executeArchwayContractCall } from '../utils/archwayUtils';
 
 const CosmosApprovalPage = () => {
   const [proposalInput, setProposalInput] = useState('');
@@ -9,7 +10,7 @@ const CosmosApprovalPage = () => {
 
   const handleSubmit = async () => {
     const contractAddress = CosmosContracts.injective;
-    const chainId = CosmosChains.injective;
+    const chainId = CosmosChains.injective.chainId;
     const voteValue = 'yes';
     const txMsg = {
       vote: {
@@ -18,6 +19,23 @@ const CosmosApprovalPage = () => {
       },
     };
     const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
+    if (res) {
+      console.log('Transaction Success. TxHash', res);
+      setTxnHash(res);
+    }
+  };
+
+  const handleArchway = async () => {
+    const contractAddress = CosmosContracts.archway;
+    const chainId = CosmosChains.archway.chainId;
+    const voteValue = 'yes';
+    const txMsg = {
+      vote: {
+        proposal_id: Number(proposalInput),
+        vote: voteValue,
+      },
+    };
+    const res = await executeArchwayContractCall(chainId, contractAddress, txMsg);
     if (res) {
       console.log('Transaction Success. TxHash', res);
       setTxnHash(res);
@@ -34,7 +52,7 @@ const CosmosApprovalPage = () => {
           placeholder="Proposal ID"
           className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
         />
-        <button onClick={handleSubmit} className="bg-blue-600 text-white p-2 rounded font-bold">
+        <button onClick={handleArchway} className="bg-blue-600 text-white p-2 rounded font-bold">
           Approve Proposal
         </button>
       </div>
