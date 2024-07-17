@@ -1,26 +1,31 @@
 import { useChain } from '@cosmos-kit/react';
-import { CosmosChains } from '../../constants/chains';
+import { CosmosChains, getCosmosChain } from '../../constants/chains';
 import { ChangeEvent, useEffect, useState } from 'react';
+import { useAppContext } from '../../context/AppContext';
+import { ActionTypes } from '../../context/ActionTypes';
 
-interface CosmosWalletWidgetProps {
-  chainName: string;
-}
+const ENV = import.meta.env.VITE_APP_ENV;
+const NETWORK_TYPE = ENV === 'prod' ? 'mainnet' : 'testnet';
 
-const CosmosWalletWidget = ({ chainName }: CosmosWalletWidgetProps) => {
-  const [activeChain, setActiveChain] = useState(chainName);
+const CosmosWalletWidget = () => {
+  const { state, dispatch } = useAppContext();
+  const chainName = state.activeCosmosChain.chainName;
+  const [activeChain, setActiveChain] = useState('');
   const { connect, openView, address } = useChain(chainName);
 
+  const AvailableChainOptions = Object.values(CosmosChains).filter(chain => chain.networkType === NETWORK_TYPE);
+
   const handleActiveChainChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setActiveChain(event.target.value);
-    localStorage.setItem('cosmos-active-chain', event.target.value);
+    const selectedValue = event.target.value;
+    const cosmosChain = getCosmosChain(selectedValue as keyof typeof CosmosChains);
+    if (cosmosChain) {
+      dispatch({ type: ActionTypes.SET_ACTIVE_COSMOS_CHAIN, payload: cosmosChain });
+    }
   };
 
   useEffect(() => {
-    const activeCosmosChain = localStorage.getItem('cosmos-active-chain');
-    if (activeCosmosChain) {
-      setActiveChain(activeCosmosChain);
-    }
-  }, []);
+    setActiveChain(state.activeCosmosChain.chainName);
+  }, [state.activeCosmosChain.chainName])
 
   return (
     <div className="cosmos-wallet-widget">
@@ -32,9 +37,9 @@ const CosmosWalletWidget = ({ chainName }: CosmosWalletWidgetProps) => {
             value={activeChain}
             onChange={handleActiveChainChange}
           >
-            {Object.keys(CosmosChains).map((chain: string, index) => (
-              <option value={chain} key={index}>
-                {chain}
+            {AvailableChainOptions.map((chain: any, index) => (
+              <option value={chain.chainName} key={index}>
+                {chain.name}
               </option>
             ))}
           </select>

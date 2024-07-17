@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { CosmosChains } from '../constants/chains';
-import { CosmosContracts } from '../constants/contracts';
+import { CosmosContracts, getCosmosContractByChain } from '../constants/contracts';
 import { executeInjectiveContractCall } from '../utils/injectiveUtils';
 import { executeArchwayContractCall } from '../utils/archwayUtils';
 import { useChain } from '@cosmos-kit/react';
 import { useTx } from '../hooks/useTx';
+import CosmosWalletWidget from '../components/CosmosWalletWidget';
+import { useAppContext } from '../context/AppContext';
 
 const CosmosApprovalPage = () => {
+  const { state } = useAppContext();
+  const chainName = state.activeCosmosChain.chainName;
+  const contractAddress = getCosmosContractByChain(chainName);
+  const { address } = useChain(chainName);
   const [proposalInput, setProposalInput] = useState('');
   const [txnHash, setTxnHash] = useState('');
-  const chainName = CosmosChains.archway.chainName;
-  const contractAddress = CosmosContracts.archway;
-  const { address } = useChain(chainName);
   const { tx } = useTx(chainName);
 
   const handleSubmit = async () => {
@@ -75,6 +78,10 @@ const CosmosApprovalPage = () => {
 
   return (
     <div>
+      <div className="w-[400px]">
+        <CosmosWalletWidget />
+      </div>
+
       <h3 className="font-bold text-lg">Cosmos Approval</h3>
       <div className="approval-submit-section flex gap-2">
         <input
