@@ -78,12 +78,10 @@ const CosmosApprovalPage = () => {
   };
 
   return (
-    <div>
-      <div className="w-[400px]">
-        <CosmosWalletWidget />
-      </div>
+    <div className="cosmos-approval-page max-w-[600px] w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
+      <CosmosWalletWidget />
 
-      <h3 className="font-bold text-lg">Cosmos Approval</h3>
+      <h3 className="font-bold text-lg mt-4 mb-3">Cosmos Approval</h3>
       <div className="approval-submit-section flex gap-2">
         <input
           value={proposalInput}
