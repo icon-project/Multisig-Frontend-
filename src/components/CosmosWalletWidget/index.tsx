@@ -3,12 +3,12 @@ import { CosmosChains } from '../../constants/chains';
 import { ChangeEvent, useEffect, useState } from 'react';
 
 interface CosmosWalletWidgetProps {
-  chain: string;
+  chainName: string;
 }
 
-const CosmosWalletWidget = ({ chain }: CosmosWalletWidgetProps) => {
-  const [activeChain, setActiveChain] = useState(chain);
-  const { connect, openView, address } = useChain(activeChain);
+const CosmosWalletWidget = ({ chainName }: CosmosWalletWidgetProps) => {
+  const [activeChain, setActiveChain] = useState(chainName);
+  const { connect, openView, address } = useChain(chainName);
 
   const handleActiveChainChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setActiveChain(event.target.value);

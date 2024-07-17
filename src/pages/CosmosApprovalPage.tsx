@@ -3,10 +3,16 @@ import { CosmosChains } from '../constants/chains';
 import { CosmosContracts } from '../constants/contracts';
 import { executeInjectiveContractCall } from '../utils/injectiveUtils';
 import { executeArchwayContractCall } from '../utils/archwayUtils';
+import { useChain } from '@cosmos-kit/react';
+import { useTx } from '../hooks/useTx';
 
 const CosmosApprovalPage = () => {
   const [proposalInput, setProposalInput] = useState('');
   const [txnHash, setTxnHash] = useState('');
+  const chainName = CosmosChains.archway.chainName;
+  const contractAddress = CosmosContracts.archway;
+  const { address } = useChain(chainName);
+  const { tx } = useTx(chainName);
 
   const handleSubmit = async () => {
     const contractAddress = CosmosContracts.injective;
@@ -42,6 +48,31 @@ const CosmosApprovalPage = () => {
     }
   };
 
+  const handleApprove = async () => {
+    const voteValue = 'yes';
+    const txMsg = {
+      vote: {
+        proposal_id: Number(proposalInput),
+        vote: voteValue,
+      },
+    };
+
+    const encodedMsg = {
+      typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
+      value: {
+        sender: address,
+        contract: contractAddress,
+        msg: Buffer.from(JSON.stringify(txMsg)),
+      },
+    };
+
+    await tx([encodedMsg], {
+      onSuccess: () => {
+        console.log('Transaction Success!');
+      },
+    });
+  };
+
   return (
     <div>
       <h3 className="font-bold text-lg">Cosmos Approval</h3>
@@ -52,7 +83,7 @@ const CosmosApprovalPage = () => {
           placeholder="Proposal ID"
           className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
         />
-        <button onClick={handleArchway} className="bg-blue-600 text-white p-2 rounded font-bold">
+        <button onClick={handleApprove} className="bg-blue-600 text-white p-2 rounded font-bold">
           Approve Proposal
         </button>
       </div>
