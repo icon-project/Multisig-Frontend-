@@ -1,6 +1,8 @@
 export type cosmosChainDetails = {
   chainId: string;
   chainName: string;
+  name: string;
+  networkType: string;
 };
 
 export const CosmosChains = {
