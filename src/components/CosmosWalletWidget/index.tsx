@@ -13,7 +13,7 @@ const CosmosWalletWidget = () => {
   const [activeChain, setActiveChain] = useState('');
   const { connect, openView, address } = useChain(chainName);
 
-  const AvailableChainOptions = Object.values(CosmosChains).filter(chain => chain.networkType === NETWORK_TYPE);
+  const AvailableChainOptions = Object.values(CosmosChains).filter((chain) => chain.networkType === NETWORK_TYPE);
 
   const handleActiveChainChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value;
@@ -25,7 +25,7 @@ const CosmosWalletWidget = () => {
 
   useEffect(() => {
     setActiveChain(state.activeCosmosChain.chainName);
-  }, [state.activeCosmosChain.chainName])
+  }, [state.activeCosmosChain.chainName]);
 
   return (
     <div className="cosmos-wallet-widget">
