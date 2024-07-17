@@ -13,7 +13,12 @@ type Action = { type: ActionTypes.SET_ACTIVE_COSMOS_CHAIN; payload: cosmosChainD
 
 const defaultChain = Object.values(CosmosChains).find((chain) => chain.networkType === NETWORK_TYPE);
 const initialState: State = {
-  activeCosmosChain: { chainId: defaultChain!.chainId, chainName: defaultChain!.chainName },
+  activeCosmosChain: {
+    chainId: defaultChain!.chainId,
+    chainName: defaultChain!.chainName,
+    name: defaultChain!.name,
+    networkType: defaultChain!.networkType,
+  },
 };
 
 interface ContextType {
