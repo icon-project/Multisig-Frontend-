@@ -53,11 +53,15 @@ const CosmosApprovalPage = () => {
       },
     };
 
-    await tx([encodedMsg], {
+    const res = await tx([encodedMsg], {
       onSuccess: () => {
         console.log('Transaction Success!');
       },
     });
+    if (res) {
+      console.log('Transaction Success. TxHash', res);
+      setTxnHash(res);
+    }
   };
 
   const handleApproveClick = () => {
