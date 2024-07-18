@@ -5,6 +5,7 @@ import { useChain } from '@cosmos-kit/react';
 import { useTx } from '../hooks/useTx';
 import CosmosWalletWidget from '../components/CosmosWalletWidget';
 import { useAppContext } from '../context/AppContext';
+import CosmosProposalsTable from '../components/CosmosProposalsTable';
 
 const CosmosApprovalPage = () => {
   const { state } = useAppContext();
@@ -24,7 +25,7 @@ const CosmosApprovalPage = () => {
     const voteValue = 'yes';
     const txMsg = {
       vote: {
-        proposal_id: proposalInput,
+        proposal_id: Number(proposalInput),
         vote: voteValue,
       },
     };
@@ -78,7 +79,7 @@ const CosmosApprovalPage = () => {
   };
 
   return (
-    <div className="cosmos-approval-page max-w-[600px] w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
+    <div className="cosmos-approval-page w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
       <CosmosWalletWidget />
 
       <h3 className="font-bold text-lg mt-4 mb-3">Cosmos Approval</h3>
@@ -94,6 +95,10 @@ const CosmosApprovalPage = () => {
         </button>
       </div>
       {txnHash && <div>Transaction hash: {txnHash}</div>}
+
+      <div className="mt-4 w-full max-w-[1920px]">
+        <CosmosProposalsTable />
+      </div>
     </div>
   );
 };
