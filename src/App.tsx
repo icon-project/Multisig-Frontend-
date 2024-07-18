@@ -1,12 +1,13 @@
 import CosmosWalletWidget from './components/CosmosWalletWidget';
 import { CosmosChains } from './constants/chains';
 import '@rainbow-me/rainbowkit/styles.css';
-import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
-import { sepolia, baseSepolia } from 'wagmi/chains';
+import CreateProposal from './pages/CreateProposal';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { config } from './config';
-import { Landing } from './components/Landing';
+
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import EVMManagerPage from './pages/EVMManagerPage';
 
@@ -27,17 +28,22 @@ function App() {
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
-            <div className="app pt-5 pl-32">
-              <h3 className="text-lg font-bold">IBC</h3>
+            <Router>
+              <div className="app pt-5 pl-32">
+                <h3 className="text-lg font-bold">IBC</h3>
 
-              <div>
-                <div className="w-[400px]">
-                  <CosmosWalletWidget chain={CosmosChains.archway} />
+                <div>
+                  <div className="w-[400px]">
+                    <CosmosWalletWidget chain={CosmosChains.archway} />
+                  </div>
+
+                  <Routes>
+                    <Route path="/" element={<EVMManagerPage />} />
+                    <Route path="/createProposal" element={<CreateProposal />} />
+                  </Routes>
                 </div>
-
-                <EVMManagerPage />
               </div>
-            </div>
+            </Router>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
