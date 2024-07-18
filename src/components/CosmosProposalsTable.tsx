@@ -117,7 +117,7 @@ const CosmosProposalsPage = () => {
                     onClick={() => {
                       setModalDetails({
                         show: true,
-                        title: 'Msgs',
+                        title: 'Threshold',
                         description: <pre>{JSON.stringify(proposal.threshold, null, 2)}</pre>,
                       });
                     }}
