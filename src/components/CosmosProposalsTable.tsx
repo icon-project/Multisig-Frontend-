@@ -63,7 +63,6 @@ const CosmosProposalsPage = () => {
       list_proposals: {},
     };
     const { proposals } = await getContractData(txMsg);
-    console.log(proposals);
     setProposalList(proposals);
   };
 

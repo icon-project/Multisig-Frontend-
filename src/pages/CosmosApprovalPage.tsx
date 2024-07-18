@@ -78,6 +78,64 @@ const CosmosApprovalPage = () => {
     }
   };
 
+  const handleInjectiveExecute = async () => {
+    const chainId = state.activeCosmosChain.chainId;
+    if (!contractAddress) {
+      console.log('No contract address found.');
+      return;
+    }
+    const txMsg = {
+      execute: {
+        proposal_id: Number(proposalInput),
+      },
+    };
+    const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
+    if (res) {
+      console.log('Transaction Success. TxHash', res);
+      setTxnHash(res);
+    }
+  };
+
+  const handleExecute = async () => {
+    const txMsg = {
+      execute: {
+        proposal_id: Number(proposalInput),
+      },
+    };
+
+    const encodedMsg = {
+      typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
+      value: {
+        sender: address,
+        contract: contractAddress,
+        msg: Buffer.from(JSON.stringify(txMsg)),
+      },
+    };
+
+    const res = await tx([encodedMsg], {
+      onSuccess: () => {
+        console.log('Transaction Success!');
+      },
+    });
+    if (res) {
+      console.log('Transaction Success. TxHash', res);
+      setTxnHash(res);
+    }
+  };
+
+  const handleExecuteClick = () => {
+    if (!isWalletConnected) {
+      connect();
+      return;
+    }
+    const chain_name = state.activeCosmosChain.name;
+    if (chain_name === 'injective') {
+      handleInjectiveExecute();
+    } else {
+      handleExecute();
+    }
+  };
+
   return (
     <div className="cosmos-approval-page w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
       <CosmosWalletWidget />
@@ -92,6 +150,9 @@ const CosmosApprovalPage = () => {
         />
         <button onClick={handleApproveClick} className="bg-blue-600 text-white p-2 rounded font-bold">
           Approve Proposal
+        </button>
+        <button onClick={handleExecuteClick} className="bg-blue-600 text-white p-2 rounded font-bold">
+          Execute Proposal
         </button>
       </div>
       {txnHash && <div>Transaction hash: {txnHash}</div>}
