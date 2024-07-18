@@ -1,0 +1,3 @@
+export enum ActionTypes {
+  SET_ACTIVE_COSMOS_CHAIN = 'SET_ACTIVE_COSMOS_CHAIN',
+}

@@ -1,5 +1,4 @@
-import CosmosWalletWidget from './components/CosmosWalletWidget';
-import { CosmosChains } from './constants/chains';
+import CosmosApprovalPage from './pages/CosmosApprovalPage';
 import '@rainbow-me/rainbowkit/styles.css';
 import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
@@ -25,16 +24,12 @@ function App() {
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
-            <div className="app">
-              <h3 className="text-lg font-bold">IBC</h3>
+            <div className="app min-h-[100vh] bg-gradient-to-b from-blue-400 to-blue-200">
+              <h3 className="text-4xl text-center font-bold py-6">IBC</h3>
 
-              <div>
-                <div className="w-[400px]">
-                  <CosmosWalletWidget chain={CosmosChains.archway} />
-                </div>
+              <CosmosApprovalPage />
 
-                <EVMManagerPage />
-              </div>
+              <EVMManagerPage />
             </div>
           </RainbowKitProvider>
         </QueryClientProvider>
