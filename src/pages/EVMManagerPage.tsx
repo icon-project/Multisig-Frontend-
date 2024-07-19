@@ -1,5 +1,5 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-
+import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { useEthersSigner } from '../utils/ethers';
 import { ethers } from 'ethers';
@@ -7,7 +7,7 @@ import { abi } from '../abi/SAFE_ABI';
 // import { getEthersSigner } from '../EtherJs/ethers';
 import { config } from '../config';
 import { getChainId } from '@wagmi/core';
-import proposal_data from '../../scripts/proposal_data.json';
+import { loadProposalData } from '../utils/loadproposaldata';
 
 // import { Proposals } from '../components/ProposalsList/Proposals';
 
@@ -16,7 +16,7 @@ import { EthereumContracts } from '../constants/contracts';
 const EVMManagerPage = () => {
   const signer = useEthersSigner();
   const chainId = getChainId(config); // account, chainid, metamask
-
+  const [proposal_data, setProposalData] = useState<any[]>([]);
   // console.log(chainslist[0].chainId);
 
   const contractList = {
@@ -62,6 +62,20 @@ const EVMManagerPage = () => {
     console.log('Contract address:', address);
   }, [chainId]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await loadProposalData();
+        console.log('Fetched proposal data:', data);
+        setProposalData(data);
+      } catch (error) {
+        console.error('Error fetching proposal data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div className="evm-manager-page">
       <div>
@@ -85,6 +99,15 @@ const EVMManagerPage = () => {
       {/* //proposals List */}
       <div>
         <h1 className="pt-10">List of proposals</h1>
+        <Link to="/evm/create-proposal">
+          <button
+            className="bg-transparent border-blue-700 p-5  text-blue-700 font-semibold hover:text-white my-3 border hover:border-transparent hover:bg-blue-700 rounded"
+            // onClick={}
+          >
+            {' '}
+            Create a Proposal{' '}
+          </button>
+        </Link>
 
         <div>
           <table className="mt-2  ">
@@ -96,26 +119,32 @@ const EVMManagerPage = () => {
                 <th className="border border-black">Approve</th>
               </tr>
             </thead>
-
-            {proposal_data.map((proposal) => (
-              <tr className="border border-black">
-                <td className="border border-black h-16 pl-3">{proposal.remark}</td>
-                <td className="border border-black h-16 pl-3">{proposal.proposal}</td>
-
-                <td>
-                  <div className="pl-3 w-64 ">
-                    <button
-                      className="bg-transparent  hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-10 border border-blue-500 hover:border-transparent rounded"
-                      onClick={() => {
-                        handleSubmit(proposal.proposal);
-                      }}
-                    >
-                      Approve proposal
-                    </button>
-                  </div>{' '}
-                </td>
-              </tr>
-            ))}
+            <tbody>
+              {proposal_data.length > 0 ? (
+                proposal_data.map((proposal, index) => (
+                  <tr key={index} className="border border-black">
+                    <td className="border border-black h-16 pl-3">{proposal.remark}</td>
+                    <td className="border border-black h-16 pl-3 m-3">{proposal.proposal}</td>
+                    <td>
+                      <div className="pl-3">
+                        <button
+                          className="bg-transparent text-blue-700 font-semibold py-2 m-3 border hover:border-transparent rounded"
+                          onClick={() => {
+                            handleSubmit(proposal.proposal);
+                          }}
+                        >
+                          Approve proposal
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="text-center">No proposals</td>
+                </tr>
+              )}
+            </tbody>
             {/* {!isComplete ? <SpinningCircles fill="black" className="w-20 h-10 inline fixed top-20 right-96 pl-3" /> : ''} */}
           </table>
         </div>
