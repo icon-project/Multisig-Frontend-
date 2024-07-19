@@ -1,6 +1,6 @@
 import CosmosApprovalPage from './pages/CosmosApprovalPage';
 import '@rainbow-me/rainbowkit/styles.css';
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import CreateProposal from './pages/CreateProposal';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
@@ -33,7 +33,7 @@ function App() {
     <>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider>
+          <RainbowKitProvider theme={darkTheme()}>
             <Router>
               <div className="app min-h-[100vh] bg-gradient-to-b from-blue-400 to-blue-200">
                 <h3 className="text-4xl text-center font-bold py-6">IBC</h3>
