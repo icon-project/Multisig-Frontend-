@@ -1,7 +1,24 @@
 import { database } from '../firebase';
-import { getDatabase, ref, set, get, child } from 'firebase/database';
+import { ref, get, child } from 'firebase/database';
 
-export async function loadProposalData() {
+interface Proposal {
+  proposal: String;
+  to: String;
+  value: Number;
+  data: String;
+  operation: Number;
+  baseGas: Number;
+  gasPrice: Number;
+  gasToken: String;
+  refundReceiver: String;
+  nonce: BigInt;
+  execute: Boolean;
+  signatures: Array<Number>;
+  chain: string;
+  remark: String;
+}
+
+export async function loadProposalData(): Promise<Proposal[]> {
   try {
     console.log('Fetching proposals from Firebase...');
     const dbRef = ref(database);
@@ -12,9 +29,9 @@ export async function loadProposalData() {
       return [];
     }
 
-    const proposals = [];
+    const proposals: Proposal[] = [];
     snapshot.forEach((childSnapshot) => {
-      proposals.push(childSnapshot.val());
+      proposals.push(childSnapshot.val() as Proposal);
     });
 
     console.log('Proposals loaded:', proposals);

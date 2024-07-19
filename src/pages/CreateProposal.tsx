@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { EthereumContracts } from '../constants/contracts';
 import { config } from '../config';
@@ -7,26 +7,23 @@ import { useEthersSigner } from '../utils/ethers';
 import { ethers } from 'ethers';
 import { abi } from '../abi/SAFE_ABI';
 import { database } from '../firebase';
-import { getDatabase, ref, set, get, child, update } from 'firebase/database';
+import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../utils/loadproposaldata';
 
 const CreateProposal = () => {
-  const [proposalJson, setProposalJson] = useState('');
-
   const [formData, setFormData] = useState({
     proxyAddress: '',
     proxyAdminAddress: '',
     implementationAddress: '',
     remarks: '',
   });
-  const [remark, setRemark] = useState('');
 
   const signer = useEthersSigner();
   const chain = getChainId(config);
 
   console.log('Chain', chain);
 
-  const contractList = {
+  const contractList: Record<number, string> = {
     '84532': EthereumContracts.BASE_SEPOLIA_SAFE,
     '11155111': EthereumContracts.SEPOLIA_SAFE,
     '43113': EthereumContracts.FUJI_SAFE,
@@ -50,9 +47,6 @@ const CreateProposal = () => {
         formData.implementationAddress,
         '0x',
       ]);
-      //   var abiCoder = ethers.utils.defaultAbiCoder;
-
-      //   var encodedData = abiCoder.encode(safeabi, [formData.proxyAddress, formData.implementationAddress, '0x']);
 
       console.log('encoded data', encodedData);
 
@@ -102,7 +96,6 @@ const CreateProposal = () => {
         remark: formData.remarks,
       };
 
-      console.log('final proposal data', proposalData);
       let proposals = await loadProposalData();
       proposals.push(proposalData);
       console.log(proposals);
@@ -115,14 +108,13 @@ const CreateProposal = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log(e.target.value);
     const { name, value } = e.target;
     setFormData((formData) => ({
       ...formData,
       [name]: value, // Update the specific field
     }));
-    setRemark(formData.remarks);
   };
 
   useEffect(() => {

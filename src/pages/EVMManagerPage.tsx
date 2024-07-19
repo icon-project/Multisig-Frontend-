@@ -1,15 +1,12 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Link } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useEthersSigner } from '../utils/ethers';
 import { ethers } from 'ethers';
 import { abi } from '../abi/SAFE_ABI';
-// import { getEthersSigner } from '../EtherJs/ethers';
 import { config } from '../config';
 import { getChainId } from '@wagmi/core';
 import { loadProposalData } from '../utils/loadproposaldata';
-
-// import { Proposals } from '../components/ProposalsList/Proposals';
 
 import { EthereumContracts } from '../constants/contracts';
 
@@ -17,10 +14,9 @@ const EVMManagerPage = () => {
   const signer = useEthersSigner();
   const chainId = getChainId(config); // account, chainid, metamask
   const [proposal_data, setProposalData] = useState<any[]>([]);
-  // console.log(chainslist[0].chainId);
   const [error, setError] = useState('');
 
-  const contractList = {
+  const contractList: Record<number, string> = {
     '84532': EthereumContracts.BASE_SEPOLIA_SAFE,
     '11155111': EthereumContracts.SEPOLIA_SAFE,
     '43113': EthereumContracts.FUJI_SAFE,
@@ -32,7 +28,7 @@ const EVMManagerPage = () => {
     '8453': EthereumContracts.BASE,
   };
 
-  const handleSubmit = async (hash) => {
+  const handleSubmit = async (hash: string) => {
     console.log('');
     if (!signer) {
       console.error('Signer is undefined. Check initialization.');
@@ -52,7 +48,6 @@ const EVMManagerPage = () => {
       console.log(contract, 'contracts');
 
       const tx = await contract.approveHash(hash);
-      // const tx = await contract.approvedHashes();
 
       // Wait for the transaction to be mined
       await tx.wait();
@@ -87,7 +82,7 @@ const EVMManagerPage = () => {
       <div className=" mt-5 ml-[90px]">
         <ConnectButton />
       </div>
-      {/* //proposals List */}
+
       <div>
         <h3 className="font-bold text-lg mb-3 text-center">Ethereum Approval</h3>
 
@@ -145,7 +140,6 @@ const EVMManagerPage = () => {
                 </tr>
               )}
             </tbody>
-            {/* {!isComplete ? <SpinningCircles fill="black" className="w-20 h-10 inline fixed top-20 right-96 pl-3" /> : ''} */}
           </table>
         </div>
       </div>
