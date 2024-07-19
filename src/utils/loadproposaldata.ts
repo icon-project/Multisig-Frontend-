@@ -13,8 +13,9 @@ export async function loadProposalData() {
     }
 
     const proposals = [];
-
-    proposals.push(snapshot.val());
+    snapshot.forEach((childSnapshot) => {
+      proposals.push(childSnapshot.val());
+    });
 
     console.log('Proposals loaded:', proposals);
     return proposals;

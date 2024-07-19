@@ -63,16 +63,15 @@ const EVMManagerPage = () => {
   }, [chainId]);
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       try {
-        const data = await loadProposalData(); // Load proposals
-        console.log('Printing the data from Firebase', data.length);
-        setProposalData(data); // Update proposal_data state with fetched data
-        console.log(proposal_data); // Example log, ensure data is correctly fetched
+        const data = await loadProposalData();
+        console.log('Fetched proposal data:', data);
+        setProposalData(data);
       } catch (error) {
         console.error('Error fetching proposal data:', error);
       }
-    }
+    };
 
     fetchData();
   }, []);
@@ -121,24 +120,30 @@ const EVMManagerPage = () => {
               </tr>
             </thead>
             <tbody>
-              {proposal_data[0].map((proposal, index) => (
-                <tr key={index} className="border border-black">
-                  <td className="border border-black h-16 pl-3">{proposal.remark}</td>
-                  <td className="border border-black h-16 pl-3 m-3">{proposal.proposal}</td>
-                  <td>
-                    <div className="pl-3">
-                      <button
-                        className="bg-transparent text-blue-700 font-semibold py-2 m-3 border hover:border-transparent rounded"
-                        onClick={() => {
-                          handleSubmit(proposal.proposal);
-                        }}
-                      >
-                        Approve proposal
-                      </button>
-                    </div>
-                  </td>
+              {proposal_data.length > 0 ? (
+                proposal_data.map((proposal, index) => (
+                  <tr key={index} className="border border-black">
+                    <td className="border border-black h-16 pl-3">{proposal.remark}</td>
+                    <td className="border border-black h-16 pl-3 m-3">{proposal.proposal}</td>
+                    <td>
+                      <div className="pl-3">
+                        <button
+                          className="bg-transparent text-blue-700 font-semibold py-2 m-3 border hover:border-transparent rounded"
+                          onClick={() => {
+                            handleSubmit(proposal.proposal);
+                          }}
+                        >
+                          Approve proposal
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="text-center">No proposals</td>
                 </tr>
-              ))}
+              )}
             </tbody>
             {/* {!isComplete ? <SpinningCircles fill="black" className="w-20 h-10 inline fixed top-20 right-96 pl-3" /> : ''} */}
           </table>
