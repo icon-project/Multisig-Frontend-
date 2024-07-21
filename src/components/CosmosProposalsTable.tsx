@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useContractData } from '../hooks/useContractData';
 import { useChain } from '@cosmos-kit/react';
@@ -38,7 +38,12 @@ interface ModalDetails {
   description: string | ReactNode;
 }
 
-const CosmosProposalsPage = () => {
+interface CosmosProposalsPageProps {
+  approveAction?: (proposalId: number) => void;
+  executeAction?: (proposalId: number) => void;
+}
+
+const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ approveAction, executeAction }) => {
   const { state } = useAppContext();
   const chainName = state.activeCosmosChain.chainName;
   const { address } = useChain(chainName);
@@ -87,6 +92,7 @@ const CosmosProposalsPage = () => {
               <th>Threshold</th>
               <th>Status</th>
               <th>Expires At</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -127,6 +133,20 @@ const CosmosProposalsPage = () => {
                 </td>
                 <td>{proposal.status}</td>
                 <td>{convertTimestampToDateTime(proposal.expires.at_time)}</td>
+                <td>
+                  <div className="flex gap-2">
+                    {approveAction && (
+                      <button className="d-btn" onClick={() => approveAction(Number(proposal.id))}>
+                        Approve
+                      </button>
+                    )}
+                    {executeAction && (
+                      <button className="d-btn" onClick={() => executeAction(Number(proposal.id))}>
+                        Execute
+                      </button>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
