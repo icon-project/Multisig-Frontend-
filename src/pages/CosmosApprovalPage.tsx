@@ -6,6 +6,7 @@ import { useTx } from '../hooks/useTx';
 import CosmosWalletWidget from '../components/CosmosWalletWidget';
 import { useAppContext } from '../context/AppContext';
 import CosmosProposalsTable from '../components/CosmosProposalsTable';
+import useToast from '../hooks/useToast';
 
 const CosmosApprovalPage = () => {
   const { state } = useAppContext();
@@ -15,6 +16,7 @@ const CosmosApprovalPage = () => {
   const [proposalInput, setProposalInput] = useState('');
   const [txnHash, setTxnHash] = useState('');
   const { tx } = useTx(chainName);
+  const { toast, ToastContainer } = useToast();
 
   const handleInjectiveApprove = async () => {
     const chainId = state.activeCosmosChain.chainId;
@@ -29,10 +31,15 @@ const CosmosApprovalPage = () => {
         vote: voteValue,
       },
     };
-    const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
-    if (res) {
-      console.log('Transaction Success. TxHash', res);
-      setTxnHash(res);
+    try {
+      const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
+      if (res) {
+        console.log('Approval Success. TxHash', res);
+        setTxnHash(res);
+        toast(`Approval Success. TxHash: ${res}`, 'success');
+      }
+    } catch (err) {
+      toast(`Approval Failed: ${err}`, 'error');
     }
   };
 
@@ -54,14 +61,19 @@ const CosmosApprovalPage = () => {
       },
     };
 
-    const res = await tx([encodedMsg], {
-      onSuccess: () => {
-        console.log('Transaction Success!');
-      },
-    });
-    if (res) {
-      console.log('Transaction Success. TxHash', res);
-      setTxnHash(res);
+    try {
+      const res = await tx([encodedMsg], {
+        onSuccess: () => {
+          console.log('Transaction Success!');
+        },
+      });
+      if (res) {
+        console.log('Transaction Success. TxHash', res);
+        setTxnHash(res);
+        toast(`Approval Success. TxHash: ${res}`, 'success');
+      }
+    } catch (err) {
+      toast(`Approval Failed: ${err}`, 'error');
     }
   };
 
@@ -89,10 +101,16 @@ const CosmosApprovalPage = () => {
         proposal_id: Number(proposalInput),
       },
     };
-    const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
-    if (res) {
-      console.log('Transaction Success. TxHash', res);
-      setTxnHash(res);
+
+    try {
+      const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
+      if (res) {
+        console.log('Transaction Success. TxHash', res);
+        setTxnHash(res);
+        toast(`Execute Success. TxHash: ${res}`, 'success');
+      }
+    } catch (err) {
+      toast(`Execute Failed: ${err}`, 'error');
     }
   };
 
@@ -112,14 +130,19 @@ const CosmosApprovalPage = () => {
       },
     };
 
-    const res = await tx([encodedMsg], {
-      onSuccess: () => {
-        console.log('Transaction Success!');
-      },
-    });
-    if (res) {
-      console.log('Transaction Success. TxHash', res);
-      setTxnHash(res);
+    try {
+      const res = await tx([encodedMsg], {
+        onSuccess: () => {
+          console.log('Transaction Success!');
+        },
+      });
+      if (res) {
+        console.log('Transaction Success. TxHash', res);
+        setTxnHash(res);
+        toast(`Execute Success. TxHash: ${res}`, 'success');
+      }
+    } catch (err) {
+      toast(`Execute Failed: ${err}`, 'error');
     }
   };
 
@@ -160,6 +183,8 @@ const CosmosApprovalPage = () => {
       <div className="mt-4 w-full max-w-[1920px]">
         <CosmosProposalsTable />
       </div>
+
+      <ToastContainer />
     </div>
   );
 };
