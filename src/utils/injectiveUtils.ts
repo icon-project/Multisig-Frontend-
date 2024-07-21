@@ -1,5 +1,5 @@
 import { getKeplr } from './walletUtils';
-import { TxRaw, CosmosTxV1Beta1Tx, BroadcastModeKeplr } from '@injectivelabs/sdk-ts';
+import { TxRaw, CosmosTxV1Beta1Tx, BroadcastModeKeplr, TxRestClient } from '@injectivelabs/sdk-ts';
 import { TransactionException } from '@injectivelabs/exceptions';
 import {
   MsgExecuteContract,
@@ -79,10 +79,11 @@ export const executeInjectiveContractCall = async (
     const directSignResponse = await offlineSigner.signDirect(injectiveAddress, signDoc as unknown as SignDoc);
     const txRaw = getTxRawFromTxRawOrDirectSignResponse(directSignResponse);
     const txHash = await broadcastTx(chainId, txRaw);
-    return txHash;
-    // const response = await new TxRestClient(restEndpoint).fetchTxPoll(txHash);
-    // console.log(response);
+    const response = await new TxRestClient(restEndpoint).fetchTxPoll(txHash);
+    console.log(response);
+    return response.txHash;
   } catch (error) {
     console.log('ERROR:', error);
+    throw error;
   }
 };
