@@ -7,6 +7,7 @@ import CosmosWalletWidget from '../components/CosmosWalletWidget';
 import { useAppContext } from '../context/AppContext';
 import CosmosProposalsTable from '../components/CosmosProposalsTable';
 import useToast from '../hooks/useToast';
+import { executeArchwayContractCall } from '../utils/archwayUtils';
 
 const CosmosApprovalPage = () => {
   const { state } = useAppContext();
@@ -34,6 +35,31 @@ const CosmosApprovalPage = () => {
       const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Approval Success. TxHash', res);
+        setTxnHash(res);
+        toast(`Approval Success. TxHash: ${res}`, 'success');
+      }
+    } catch (err) {
+      toast(`Approval Failed: ${err}`, 'error');
+    }
+  };
+
+  const handleArchwayApprove = async (proposalId: number) => {
+    const chainId = state.activeCosmosChain.chainId;
+    if (!contractAddress) {
+      console.log('No contract address found.');
+      return;
+    }
+    const voteValue = 'yes';
+    const txMsg = {
+      vote: {
+        proposal_id: Number(proposalId),
+        vote: voteValue,
+      },
+    };
+    try {
+      const res = await executeArchwayContractCall(chainId, contractAddress, txMsg);
+      if (res) {
+        console.log('Transaction Success. TxHash', res);
         setTxnHash(res);
         toast(`Approval Success. TxHash: ${res}`, 'success');
       }
@@ -84,6 +110,8 @@ const CosmosApprovalPage = () => {
     const chain_name = state.activeCosmosChain.name;
     if (chain_name === 'injective') {
       handleInjectiveApprove(proposalId);
+    } else if (chain_name === 'archway') {
+      handleArchwayApprove(proposalId);
     } else {
       handleApprove(proposalId);
     }
@@ -103,6 +131,30 @@ const CosmosApprovalPage = () => {
 
     try {
       const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
+      if (res) {
+        console.log('Transaction Success. TxHash', res);
+        setTxnHash(res);
+        toast(`Execute Success. TxHash: ${res}`, 'success');
+      }
+    } catch (err) {
+      toast(`Execute Failed: ${err}`, 'error');
+    }
+  };
+
+  const handleArchwayExecute = async (proposalId: number) => {
+    const chainId = state.activeCosmosChain.chainId;
+    if (!contractAddress) {
+      console.log('No contract address found.');
+      return;
+    }
+    const txMsg = {
+      execute: {
+        proposal_id: proposalId,
+      },
+    };
+
+    try {
+      const res = await executeArchwayContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Transaction Success. TxHash', res);
         setTxnHash(res);
@@ -153,6 +205,8 @@ const CosmosApprovalPage = () => {
     const chain_name = state.activeCosmosChain.name;
     if (chain_name === 'injective') {
       handleInjectiveExecute(proposalId);
+    } else if (chain_name === 'archway') {
+      handleArchwayExecute(proposalId);
     } else {
       handleExecute(proposalId);
     }
