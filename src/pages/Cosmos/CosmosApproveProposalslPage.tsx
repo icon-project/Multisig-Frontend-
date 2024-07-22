@@ -1,22 +1,25 @@
-import { useState } from 'react';
-import { getCosmosContractByChain } from '../constants/contracts';
-import { executeInjectiveContractCall } from '../utils/injectiveUtils';
+import { getCosmosContractByChain } from '../../constants/contracts';
+import { executeInjectiveContractCall } from '../../utils/injectiveUtils';
 import { useChain } from '@cosmos-kit/react';
-import { useTx } from '../hooks/useTx';
-import CosmosWalletWidget from '../components/CosmosWalletWidget';
-import { useAppContext } from '../context/AppContext';
-import CosmosProposalsTable from '../components/CosmosProposalsTable';
-import useToast from '../hooks/useToast';
-import { executeArchwayContractCall } from '../utils/archwayUtils';
+import { useTx } from '../../hooks/useTx';
+import { useAppContext } from '../../context/AppContext';
+import CosmosProposalsTable from '../../components/CosmosProposalsTable';
+import useToast from '../../hooks/useToast';
+import { executeArchwayContractCall } from '../../utils/archwayUtils';
+import { useEffect, useState } from 'react';
+import { CosmosChains } from '../../constants/chains';
+import { useContractData } from '../../hooks/useContractData';
+import { Proposal } from '../../@types/CosmosProposalsTypes';
 
-const CosmosApprovalPage = () => {
+const CosmosApproveProposalslPage = () => {
   const { state } = useAppContext();
   const chainName = state.activeCosmosChain.chainName;
   const contractAddress = getCosmosContractByChain(chainName);
   const { address, isWalletConnected, connect } = useChain(chainName);
-  const [txnHash, setTxnHash] = useState('');
+  const [proposalList, setProposalList] = useState<Proposal[]>([]);
   const { tx } = useTx(chainName);
   const { toast, ToastContainer } = useToast();
+  const { getContractData } = useContractData(chainName);
 
   const handleInjectiveApprove = async (proposalId: number) => {
     const chainId = state.activeCosmosChain.chainId;
@@ -35,7 +38,6 @@ const CosmosApprovalPage = () => {
       const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Approval Success. TxHash', res);
-        setTxnHash(res);
         toast(`Approval Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -60,7 +62,6 @@ const CosmosApprovalPage = () => {
       const res = await executeArchwayContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Approval Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -94,7 +95,6 @@ const CosmosApprovalPage = () => {
       });
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Approval Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -133,7 +133,6 @@ const CosmosApprovalPage = () => {
       const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Execute Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -157,7 +156,6 @@ const CosmosApprovalPage = () => {
       const res = await executeArchwayContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Execute Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -189,7 +187,6 @@ const CosmosApprovalPage = () => {
       });
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Execute Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -212,15 +209,34 @@ const CosmosApprovalPage = () => {
     }
   };
 
+  const getProposals = async () => {
+    const txMsg = {
+      list_proposals: {},
+    };
+    const rpcUrl = Object.values(CosmosChains).filter((chain) => chain.chainName === chainName)[0].rpcUrl;
+    const data = await getContractData(txMsg, rpcUrl);
+    if (data?.proposals) {
+      setProposalList(data.proposals);
+
+      // const filteredProposals = data.proposals.filter((proposal: Proposal) => proposal.status === "open");
+      // setProposalList(filteredProposals);
+    }
+  };
+
+  useEffect(() => {
+    if (address && chainName) {
+      getProposals();
+    }
+  }, [address, chainName]);
+
   return (
     <div className="cosmos-approval-page w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
-      <CosmosWalletWidget />
-
-      <h3 className="font-bold text-lg mt-4 mb-3">Cosmos Approval</h3>
-      {txnHash && <div>Transaction hash: {txnHash}</div>}
-
       <div className="mt-4 w-full max-w-[1600px]">
-        <CosmosProposalsTable approveAction={handleApproveClick} executeAction={handleExecuteClick} />
+        <CosmosProposalsTable
+          proposals={proposalList}
+          approveAction={handleApproveClick}
+          executeAction={handleExecuteClick}
+        />
       </div>
 
       <ToastContainer />
@@ -228,4 +244,4 @@ const CosmosApprovalPage = () => {
   );
 };
 
-export default CosmosApprovalPage;
+export default CosmosApproveProposalslPage;

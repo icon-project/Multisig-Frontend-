@@ -1,37 +1,7 @@
-import React, { ReactNode, useEffect, useState } from 'react';
-import { useAppContext } from '../context/AppContext';
-import { useContractData } from '../hooks/useContractData';
-import { useChain } from '@cosmos-kit/react';
+import React, { ReactNode, useState } from 'react';
 import { convertTimestampToDateTime } from '../utils/dateTimeUtils';
 import GeneralModal from './GeneralModal';
-import { CosmosChains } from '../constants/chains';
-
-export type Proposal = {
-  id: number;
-  title: string;
-  description: string;
-  msgs: Array<{
-    wasm: {
-      execute: {
-        contract_addr: string;
-        msg: string;
-        funds: Array<any>;
-      };
-    };
-  }>;
-  status: string;
-  expires: {
-    at_time: string;
-  };
-  threshold: {
-    absolute_count: {
-      weight: number;
-      total_weight: number;
-    };
-  };
-  proposer: string;
-  deposit: any | null;
-};
+import { Proposal } from '../@types/CosmosProposalsTypes';
 
 interface ModalDetails {
   show: boolean;
@@ -40,16 +10,12 @@ interface ModalDetails {
 }
 
 interface CosmosProposalsPageProps {
+  proposals: Proposal[];
   approveAction?: (proposalId: number) => void;
   executeAction?: (proposalId: number) => void;
 }
 
-const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ approveAction, executeAction }) => {
-  const { state } = useAppContext();
-  const chainName = state.activeCosmosChain.chainName;
-  const { address } = useChain(chainName);
-  const { getContractData } = useContractData(chainName);
-  const [proposalList, setProposalList] = useState<Proposal[]>([]);
+const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ proposals, approveAction, executeAction }) => {
   const [modalDetails, setModalDetails] = useState<ModalDetails>({
     show: false,
     title: '',
@@ -64,21 +30,6 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ approveAction
     });
   };
 
-  const getProposals = async () => {
-    const txMsg = {
-      list_proposals: {},
-    };
-    const rpcUrl = Object.values(CosmosChains).filter((chain) => chain.chainName === chainName)[0].rpcUrl;
-    const { proposals } = await getContractData(txMsg, rpcUrl);
-    setProposalList(proposals);
-  };
-
-  useEffect(() => {
-    if (address && chainName) {
-      getProposals();
-    }
-  }, [address, chainName]);
-
   return (
     <>
       <div className="overflow-x-auto">
@@ -88,8 +39,6 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ approveAction
               <th>Proposal Id</th>
               <th>Title</th>
               <th>Description</th>
-              <th>Deposil</th>
-              <th>Proposer</th>
               <th>Msgs</th>
               <th>Threshold</th>
               <th>Status</th>
@@ -98,13 +47,11 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ approveAction
             </tr>
           </thead>
           <tbody>
-            {proposalList.map((proposal, index) => (
+            {proposals.map((proposal: Proposal, index: number) => (
               <tr key={index}>
                 <th>{proposal.id}</th>
                 <td>{proposal.title}</td>
                 <td>{proposal.description}</td>
-                <td>{proposal.deposit}</td>
-                <td>{proposal.proposer}</td>
                 <td>
                   <button
                     className="d-btn"
