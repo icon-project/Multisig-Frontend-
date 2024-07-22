@@ -17,6 +17,7 @@ type CosmosContracts = {
   injectivetestnet: string;
   neutrontestnet: string;
 };
+
 type EthereumContractsType = {
   [chainId: string]: string;
 };
@@ -29,6 +30,7 @@ export const CosmosContracts: CosmosContracts = {
   injectivetestnet: INJECTIVE_CONTRACT_ADDRESS,
   neutrontestnet: NEUTRON_CONTRACT_ADDRESS,
 };
+
 export const EthereumContracts: EthereumContractsType = {
   '1': ETHEREUM_CONTRACT_ADDRESS,
   '42161': ARBITRUM_CONTRACT_ADDRESS,

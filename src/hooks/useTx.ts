@@ -64,9 +64,9 @@ export const useTx = (chainName: string) => {
         options.onSuccess();
       }
       return result.transactionHash;
-    } catch (e: any) {
-      console.error(e);
-      return;
+    } catch (err: any) {
+      console.error(err);
+      throw err;
     }
   };
 

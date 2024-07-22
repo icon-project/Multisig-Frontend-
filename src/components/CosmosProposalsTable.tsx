@@ -1,9 +1,10 @@
-import { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useContractData } from '../hooks/useContractData';
 import { useChain } from '@cosmos-kit/react';
 import { convertTimestampToDateTime } from '../utils/dateTimeUtils';
 import GeneralModal from './GeneralModal';
+import { CosmosChains } from '../constants/chains';
 
 export type Proposal = {
   id: number;
@@ -38,7 +39,12 @@ interface ModalDetails {
   description: string | ReactNode;
 }
 
-const CosmosProposalsPage = () => {
+interface CosmosProposalsPageProps {
+  approveAction?: (proposalId: number) => void;
+  executeAction?: (proposalId: number) => void;
+}
+
+const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ approveAction, executeAction }) => {
   const { state } = useAppContext();
   const chainName = state.activeCosmosChain.chainName;
   const { address } = useChain(chainName);
@@ -62,15 +68,16 @@ const CosmosProposalsPage = () => {
     const txMsg = {
       list_proposals: {},
     };
-    const { proposals } = await getContractData(txMsg);
+    const rpcUrl = Object.values(CosmosChains).filter((chain) => chain.chainName === chainName)[0].rpcUrl;
+    const { proposals } = await getContractData(txMsg, rpcUrl);
     setProposalList(proposals);
   };
 
   useEffect(() => {
-    if (address) {
+    if (address && chainName) {
       getProposals();
     }
-  }, [address]);
+  }, [address, chainName]);
 
   return (
     <>
@@ -87,6 +94,7 @@ const CosmosProposalsPage = () => {
               <th>Threshold</th>
               <th>Status</th>
               <th>Expires At</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -127,6 +135,20 @@ const CosmosProposalsPage = () => {
                 </td>
                 <td>{proposal.status}</td>
                 <td>{convertTimestampToDateTime(proposal.expires.at_time)}</td>
+                <td>
+                  <div className="flex gap-2">
+                    {approveAction && (
+                      <button className="d-btn" onClick={() => approveAction(Number(proposal.id))}>
+                        Approve
+                      </button>
+                    )}
+                    {executeAction && (
+                      <button className="d-btn" onClick={() => executeAction(Number(proposal.id))}>
+                        Execute
+                      </button>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

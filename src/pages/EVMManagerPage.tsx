@@ -79,7 +79,7 @@ const EVMManagerPage = () => {
         <h3 className="font-bold text-lg mb-3 text-center">Ethereum Approval</h3>
 
         <Link to="/evm/create-proposal">
-          <button className="bg-blue-600 text-white p-2 rounded font-bold absolute top-[360px] right-32">
+          <button className="bg-blue-600 text-white p-2 rounded font-bold">
             {' '}
             Create a Proposal{' '}
           </button>
