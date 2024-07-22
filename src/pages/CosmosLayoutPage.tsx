@@ -1,8 +1,9 @@
 import Navbar from '../components/Navbar';
 import SideNav from '../components/SideNav';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import CosmosApproveProposalslPage from './Cosmos/CosmosApproveProposalslPage';
 import CosmosWalletWidget from '../components/CosmosWalletWidget';
+import CosmosApproveProposalslPage from './Cosmos/CosmosApproveProposalslPage';
+import CosmosCreateProposalPage from './Cosmos/CosmosCreateProposalPage';
 
 interface SideNavRoutes {
     name: string;
@@ -43,7 +44,7 @@ const CosmosLayoutPage = () => {
         <div className="w-full md:w-4/5 p-4">
           <Routes>
             <Route path="approve-proposals" element={<CosmosApproveProposalslPage />} />
-            <Route path="create-proposals" element={<>Create Proposals</>} />
+            <Route path="create-proposals" element={<CosmosCreateProposalPage />} />
             <Route path="execute-proposals" element={<>Execute Proposals</>} />
             <Route path="executed-proposals" element={<>Executed Proposals</>} />
             <Route path="*" element={<Navigate to="approve-proposals" replace />} />
