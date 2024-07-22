@@ -6,14 +6,20 @@ import { useAppContext } from '../../context/AppContext';
 import CosmosProposalsTable from '../../components/CosmosProposalsTable';
 import useToast from '../../hooks/useToast';
 import { executeArchwayContractCall } from '../../utils/archwayUtils';
+import { useEffect, useState } from 'react';
+import { CosmosChains } from '../../constants/chains';
+import { useContractData } from '../../hooks/useContractData';
+import { Proposal } from '../../@types/CosmosProposalsTypes';
 
 const CosmosApproveProposalslPage = () => {
   const { state } = useAppContext();
   const chainName = state.activeCosmosChain.chainName;
   const contractAddress = getCosmosContractByChain(chainName);
   const { address, isWalletConnected, connect } = useChain(chainName);
+  const [proposalList, setProposalList] = useState<Proposal[]>([]);
   const { tx } = useTx(chainName);
   const { toast, ToastContainer } = useToast();
+  const { getContractData } = useContractData(chainName);
 
   const handleInjectiveApprove = async (proposalId: number) => {
     const chainId = state.activeCosmosChain.chainId;
@@ -203,10 +209,34 @@ const CosmosApproveProposalslPage = () => {
     }
   };
 
+  const getProposals = async () => {
+    const txMsg = {
+      list_proposals: {},
+    };
+    const rpcUrl = Object.values(CosmosChains).filter((chain) => chain.chainName === chainName)[0].rpcUrl;
+    const data = await getContractData(txMsg, rpcUrl);
+    if (data?.proposals) {
+      setProposalList(data.proposals);
+
+      // const filteredProposals = data.proposals.filter((proposal: Proposal) => proposal.status === "open");
+      // setProposalList(filteredProposals);
+    }
+  };
+
+  useEffect(() => {
+    if (address && chainName) {
+      getProposals();
+    }
+  }, [address, chainName]);
+
   return (
     <div className="cosmos-approval-page w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
       <div className="mt-4 w-full max-w-[1600px]">
-        <CosmosProposalsTable approveAction={handleApproveClick} executeAction={handleExecuteClick} />
+        <CosmosProposalsTable
+          proposals={proposalList}
+          approveAction={handleApproveClick}
+          executeAction={handleExecuteClick}
+        />
       </div>
 
       <ToastContainer />
