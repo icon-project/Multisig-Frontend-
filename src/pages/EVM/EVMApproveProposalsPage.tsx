@@ -1,18 +1,16 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useEthersSigner } from '../utils/ethers';
+import { useEthersSigner } from '../../utils/ethers';
 import { ethers } from 'ethers';
-import { abi } from '../abi/SAFE_ABI';
-import { testconfig, mainconfig } from '../config';
-import { getEthereumContractByChain } from '../constants/contracts';
+import { abi } from '../../abi/SAFE_ABI';
+import { testconfig, mainconfig } from '../../config';
+import { getEthereumContractByChain } from '../../constants/contracts';
 import { getChainId } from '@wagmi/core';
-import { loadProposalData } from '../utils/loadproposaldata';
+import { loadProposalData } from '../../utils/loadproposaldata';
+
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
-const EVMManagerPage = () => {
+const EVMApproveProposalsPage = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
-
   const signer = useEthersSigner();
   const chainId = getChainId(config); // account, chainid, metamask
   const [proposal_data, setProposalData] = useState<any[]>([]);
@@ -21,7 +19,6 @@ const EVMManagerPage = () => {
   console.log('Chain id and contract address ', chainId, contractAddress);
 
   const handleSubmit = async (hash: string) => {
-    console.log('');
     if (!signer) {
       console.error('Signer is undefined. Check initialization.');
       setError('Connect wallet first');
@@ -71,69 +68,54 @@ const EVMManagerPage = () => {
 
   return (
     <div className="evm-manager-page">
-      <div className=" mt-5 ml-[90px]">
-        <ConnectButton />
-      </div>
-
       <div>
-        <h3 className="font-bold text-lg mb-3 text-center">Ethereum Approval</h3>
+        <table className="d-table rounded bg-[rgba(255,255,255,0.1)] w-[90%] m-auto mt-6">
+          <thead>
+            <tr>
+              <th>Title </th>
+              <th>Proposal </th>
 
-        <Link to="/evm/create-proposal">
-          <button className="bg-blue-600 text-white p-2 rounded font-bold">
-            {' '}
-            Create a Proposal{' '}
-          </button>
-        </Link>
-
-        <div>
-          <table className="d-table rounded bg-[rgba(255,255,255,0.1)] w-[90%] m-auto mt-6">
-            <thead>
-              <tr>
-                <th>Title </th>
-                <th>Proposal </th>
-
-                <th>Approve</th>
-                <th>Execute</th>
-              </tr>
-            </thead>
-            <tbody>
-              {proposal_data.length > 0 ? (
-                proposal_data.map((proposal, index) => (
-                  <tr key={index} className="">
-                    <td className="">{proposal.remark}</td>
-                    <td className=" ">{proposal.proposal}</td>
-                    <td>
+              <th>Approve</th>
+              <th>Execute</th>
+            </tr>
+          </thead>
+          <tbody>
+            {proposal_data.length > 0 ? (
+              proposal_data.map((proposal, index) => (
+                <tr key={index} className="">
+                  <td className="">{proposal.remark}</td>
+                  <td className=" ">{proposal.proposal}</td>
+                  <td>
+                    <button
+                      className="d-btn"
+                      onClick={() => {
+                        handleSubmit(proposal.proposal);
+                      }}
+                    >
+                      Approve proposal
+                    </button>
+                  </td>
+                  <td>
+                    <div className="pl-3">
                       <button
                         className="d-btn"
                         onClick={() => {
                           handleSubmit(proposal.proposal);
                         }}
                       >
-                        Approve proposal
+                        Execute proposal
                       </button>
-                    </td>
-                    <td>
-                      <div className="pl-3">
-                        <button
-                          className="d-btn"
-                          onClick={() => {
-                            handleSubmit(proposal.proposal);
-                          }}
-                        >
-                          Execute proposal
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td className="text-center">No proposals</td>
+                    </div>
+                  </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            ) : (
+              <tr>
+                <td className="text-center">No proposals</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
       {error != '' ? (
         <p className="text-white bg-red-500 border  border-red-600 absolute top-32 right-1 w-fit p-2 h-10">{error}</p>
@@ -144,4 +126,4 @@ const EVMManagerPage = () => {
   );
 };
 
-export default EVMManagerPage;
+export default EVMApproveProposalsPage;

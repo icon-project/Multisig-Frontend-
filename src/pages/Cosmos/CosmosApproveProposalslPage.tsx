@@ -1,20 +1,17 @@
-import { useState } from 'react';
-import { getCosmosContractByChain } from '../constants/contracts';
-import { executeInjectiveContractCall } from '../utils/injectiveUtils';
+import { getCosmosContractByChain } from '../../constants/contracts';
+import { executeInjectiveContractCall } from '../../utils/injectiveUtils';
 import { useChain } from '@cosmos-kit/react';
-import { useTx } from '../hooks/useTx';
-import CosmosWalletWidget from '../components/CosmosWalletWidget';
-import { useAppContext } from '../context/AppContext';
-import CosmosProposalsTable from '../components/CosmosProposalsTable';
-import useToast from '../hooks/useToast';
-import { executeArchwayContractCall } from '../utils/archwayUtils';
+import { useTx } from '../../hooks/useTx';
+import { useAppContext } from '../../context/AppContext';
+import CosmosProposalsTable from '../../components/CosmosProposalsTable';
+import useToast from '../../hooks/useToast';
+import { executeArchwayContractCall } from '../../utils/archwayUtils';
 
-const CosmosApprovalPage = () => {
+const CosmosApproveProposalslPage = () => {
   const { state } = useAppContext();
   const chainName = state.activeCosmosChain.chainName;
   const contractAddress = getCosmosContractByChain(chainName);
   const { address, isWalletConnected, connect } = useChain(chainName);
-  const [txnHash, setTxnHash] = useState('');
   const { tx } = useTx(chainName);
   const { toast, ToastContainer } = useToast();
 
@@ -35,7 +32,6 @@ const CosmosApprovalPage = () => {
       const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Approval Success. TxHash', res);
-        setTxnHash(res);
         toast(`Approval Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -60,7 +56,6 @@ const CosmosApprovalPage = () => {
       const res = await executeArchwayContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Approval Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -94,7 +89,6 @@ const CosmosApprovalPage = () => {
       });
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Approval Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -133,7 +127,6 @@ const CosmosApprovalPage = () => {
       const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Execute Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -157,7 +150,6 @@ const CosmosApprovalPage = () => {
       const res = await executeArchwayContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Execute Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -189,7 +181,6 @@ const CosmosApprovalPage = () => {
       });
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        setTxnHash(res);
         toast(`Execute Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
@@ -214,11 +205,6 @@ const CosmosApprovalPage = () => {
 
   return (
     <div className="cosmos-approval-page w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
-      <CosmosWalletWidget />
-
-      <h3 className="font-bold text-lg mt-4 mb-3">Cosmos Approval</h3>
-      {txnHash && <div>Transaction hash: {txnHash}</div>}
-
       <div className="mt-4 w-full max-w-[1600px]">
         <CosmosProposalsTable approveAction={handleApproveClick} executeAction={handleExecuteClick} />
       </div>
@@ -228,4 +214,4 @@ const CosmosApprovalPage = () => {
   );
 };
 
-export default CosmosApprovalPage;
+export default CosmosApproveProposalslPage;

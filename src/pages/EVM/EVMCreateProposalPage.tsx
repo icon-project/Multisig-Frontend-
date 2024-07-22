@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { EthereumContracts } from '../constants/contracts';
-import { testconfig, mainconfig } from '../config';
+import { testconfig, mainconfig } from '../../config';
 import { getChainId } from '@wagmi/core';
-import { useEthersSigner } from '../utils/ethers';
+import { useEthersSigner } from '../../utils/ethers';
 import { ethers } from 'ethers';
-import { getEthereumContractByChain } from '../constants/contracts';
+import { getEthereumContractByChain } from '../../constants/contracts';
 
-import { abi } from '../abi/SAFE_ABI';
-import { database } from '../firebase';
+import { abi } from '../../abi/SAFE_ABI';
+import { database } from '../../firebase';
 import { ref, set } from 'firebase/database';
-import { loadProposalData } from '../utils/loadproposaldata';
+import { loadProposalData } from '../../utils/loadproposaldata';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
-const CreateProposal = () => {
+const EVMCreateProposalPage = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [formData, setFormData] = useState({
     proxyAddress: '',
@@ -186,4 +185,4 @@ const CreateProposal = () => {
   );
 };
 
-export default CreateProposal;
+export default EVMCreateProposalPage;
