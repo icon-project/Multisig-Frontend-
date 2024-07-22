@@ -2,6 +2,12 @@ const ARCHWAY_CONTRACT_ADDRESS = import.meta.env.VITE_APP_ARCHWAY_CONTRACT_ADDRE
 const INJECTIVE_CONTRACT_ADDRESS = import.meta.env.VITE_APP_INJECTIVE_CONTRACT_ADDRESS;
 const NEUTRON_CONTRACT_ADDRESS = import.meta.env.VITE_APP_NEUTRON_CONTRACT_ADDRESS;
 
+const ETHEREUM_CONTRACT_ADDRESS = import.meta.env.VITE_APP_ETHEREUM_CONTRACT_ADDRESS;
+const ARBITRUM_CONTRACT_ADDRESS = import.meta.env.VITE_APP_ARBITRUM_CONTRACT_ADDRESS;
+const BASE_CONTRACT_ADDRESS = import.meta.env.VITE_APP_BASE_CONTRACT_ADDRESS;
+const AVALANCHE_CONTRACT_ADDRESS = import.meta.env.VITE_APP_AVALANCHE_CONTRACT_ADDRESS;
+const OPTIMISM_CONTRACT_ADDRESS = import.meta.env.VITE_APP_OPTIMISM_CONTRACT_ADDRESS;
+
 type CosmosContracts = {
   archway: string;
   injective: string;
@@ -10,6 +16,9 @@ type CosmosContracts = {
   archwaytestnet: string;
   injectivetestnet: string;
   neutrontestnet: string;
+};
+type EthereumContractsType = {
+  [chainId: string]: string;
 };
 
 export const CosmosContracts: CosmosContracts = {
@@ -20,6 +29,19 @@ export const CosmosContracts: CosmosContracts = {
   injectivetestnet: INJECTIVE_CONTRACT_ADDRESS,
   neutrontestnet: NEUTRON_CONTRACT_ADDRESS,
 };
+export const EthereumContracts: EthereumContractsType = {
+  '1': ETHEREUM_CONTRACT_ADDRESS,
+  '42161': ARBITRUM_CONTRACT_ADDRESS,
+  '8453': BASE_CONTRACT_ADDRESS,
+  '10': OPTIMISM_CONTRACT_ADDRESS,
+  '43114': AVALANCHE_CONTRACT_ADDRESS,
+  // Testnets
+  '11155111': ETHEREUM_CONTRACT_ADDRESS,
+  '421614': ARBITRUM_CONTRACT_ADDRESS,
+  '84532': BASE_CONTRACT_ADDRESS,
+  '11155420': OPTIMISM_CONTRACT_ADDRESS,
+  '43113': AVALANCHE_CONTRACT_ADDRESS,
+};
 
 export const getCosmosContractByChain = (chain: string): string | undefined => {
   if (chain in CosmosContracts) {
@@ -27,24 +49,6 @@ export const getCosmosContractByChain = (chain: string): string | undefined => {
   }
 };
 
-const BASE_SEPOLIA_SAFE = import.meta.env.VITE_BASE_SEPOLIA_SAFE;
-const SEPOLIA_SAFE = import.meta.env.VITE_SEPOLIA_SAFE;
-const FUJI_SAFE = import.meta.env.VITE_FUJI_SAFE;
-const AVALANCHE = import.meta.env.VITE_AVALANCHE;
-const ARBITRUM_SEPOLIA_SAFE = import.meta.env.VITE_ARBITRUM_SEPOLIA_SAFE;
-const OPTIMISM_SEPOLIA_SAFE = import.meta.env.VITE_OPTIMISM_SEPOLIA_SAFE;
-const ARBITRUM = import.meta.env.VITE_ARBITRUM;
-const OPTIMISM = import.meta.env.VITE_OPTIMISM;
-const BASE = import.meta.env.VITE_BASE;
-
-export const EthereumContracts = {
-  BASE_SEPOLIA_SAFE,
-  SEPOLIA_SAFE,
-  FUJI_SAFE,
-  AVALANCHE,
-  ARBITRUM,
-  ARBITRUM_SEPOLIA_SAFE,
-  OPTIMISM_SEPOLIA_SAFE,
-  OPTIMISM,
-  BASE,
+export const getEthereumContractByChain = (chainId: string): string => {
+  return EthereumContracts[chainId];
 };

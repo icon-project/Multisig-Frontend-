@@ -1,43 +1,37 @@
 import { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { EthereumContracts } from '../constants/contracts';
-import { config } from '../config';
+import { testconfig, mainconfig } from '../config';
 import { getChainId } from '@wagmi/core';
 import { useEthersSigner } from '../utils/ethers';
 import { ethers } from 'ethers';
+import { getEthereumContractByChain } from '../constants/contracts';
+
 import { abi } from '../abi/SAFE_ABI';
 import { database } from '../firebase';
 import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../utils/loadproposaldata';
+const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 const CreateProposal = () => {
+  const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [formData, setFormData] = useState({
     proxyAddress: '',
     proxyAdminAddress: '',
     implementationAddress: '',
     remarks: '',
   });
+  const chainId = getChainId(config);
+  const contractAddress = getEthereumContractByChain(chainId.toString());
 
   const signer = useEthersSigner();
   const chain = getChainId(config);
 
   console.log('Chain', chain);
 
-  const contractList: Record<number, string> = {
-    '84532': EthereumContracts.BASE_SEPOLIA_SAFE,
-    '11155111': EthereumContracts.SEPOLIA_SAFE,
-    '43113': EthereumContracts.FUJI_SAFE,
-    '43114': EthereumContracts.AVALANCHE,
-    '421614': EthereumContracts.ARBITRUM_SEPOLIA_SAFE,
-    '11155420': EthereumContracts.OPTIMISM_SEPOLIA_SAFE,
-    '42161': EthereumContracts.ARBITRUM,
-    '10': EthereumContracts.OPTIMISM,
-    '8453': EthereumContracts.BASE,
-  };
-
   const callCreateProposal = async () => {
     try {
-      let contract = new ethers.Contract(contractList[chain], abi, signer);
+      let contract = new ethers.Contract(contractAddress, abi, signer);
 
       const proxyAdminInterface = new ethers.utils.Interface([
         'function upgradeAndCall(address proxy, address implementation, bytes data)',
@@ -131,67 +125,63 @@ const CreateProposal = () => {
   // }, [formData, proposalJson]);
   useEffect(() => {
     console.log('Current chain ID:', chain);
-    let address = contractList[chain];
+    let address = contractAddress;
     console.log('Contract address:', address);
   }, [chain]);
 
   return (
-    <div>
+    <div className="w-[80%] mx-auto">
       <ConnectButton />
-      <div className="flex flex-col gap-5">
-        <div className="flex flex-row gap-5 items-center pt-5">
-          <p>Enter Proxy Address:</p>
+      <div className="flex flex-row gap-5 mt-10">
+        <div className="flex flex-row gap-5 items-center ">
           <input
             type="text"
             id="proxyAddress"
             name="proxyAddress"
-            className="pl-3 border border-gray-400 h-10 w-96"
+            className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
             value={formData.proxyAddress}
             onChange={handleChange}
+            placeholder="Proxy Address"
           />
         </div>
         <div className="flex flex-row gap-5 items-center">
-          <p>Enter Proxy Admin Address:</p>
           <input
             type="text"
             id="proxyAdminAddress"
             name="proxyAdminAddress"
-            className="pl-3 border border-gray-400 h-10 w-96"
+            className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
             value={formData.proxyAdminAddress}
             onChange={handleChange}
+            placeholder="Proxy Admin Address"
           />
         </div>
         <div className="flex flex-row gap-5 items-center">
-          <p>Enter Implementation Address:</p>
           <input
             type="text"
             id="implementationAddress"
             name="implementationAddress"
-            className="pl-3 border border-gray-400 h-10 w-96"
+            className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
             value={formData.implementationAddress}
             onChange={handleChange}
+            placeholder="Implementation Address"
           />
         </div>
         <div className="flex flex-row gap-5 items-center">
-          <p>Enter Remarks</p>
           <input
             type="text"
             id="remarks"
             name="remarks"
-            className="pl-3 border border-gray-400 h-10 w-96"
+            className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
             value={formData.remarks}
             onChange={handleChange}
+            placeholder="Remarks"
           />
         </div>
-
-        <button
-          className="bg-transparent border-blue-700 p-5  text-blue-700 font-semibold hover:text-white  border hover:border-transparent hover:bg-blue-700 rounded w-[200px]"
-          onClick={callCreateProposal}
-        >
-          {' '}
-          Create Proposal
-        </button>
       </div>
+      <button className="bg-blue-600 mt-5 text-white p-2 rounded font-bold w-64" onClick={callCreateProposal}>
+        {' '}
+        Create Proposal
+      </button>
     </div>
   );
 };

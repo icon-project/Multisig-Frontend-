@@ -4,24 +4,22 @@ import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import CreateProposal from './pages/CreateProposal';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { config } from './config';
+import { mainconfig, testconfig } from './config';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import EVMManagerPage from './pages/EVMManagerPage';
+
+const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 // const WALLET_CONNECT_PROJECT_ID = import.meta.env.VITE_APP_WALLET_CONNECT_PROJECT_ID;
 
 function App() {
   const queryClient = new QueryClient();
 
-  // const config = getDefaultConfig({
-  //   appName: 'IBC',
-  //   projectId: WALLET_CONNECT_PROJECT_ID,
-  //   chains: [sepolia, baseSepolia],
-  //   ssr: false,
-  // });
+  console.log('the app is running on mode:', APP_ENV);
 
+  console.log(APP_ENV === 'dev');
   const DefaultRoute = () => (
     <>
       <CosmosApprovalPage />
@@ -31,7 +29,7 @@ function App() {
 
   return (
     <>
-      <WagmiProvider config={config}>
+      <WagmiProvider config={APP_ENV == 'dev' ? testconfig : mainconfig}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider theme={darkTheme()}>
             <Router>

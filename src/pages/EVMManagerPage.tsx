@@ -4,29 +4,21 @@ import { useState, useEffect } from 'react';
 import { useEthersSigner } from '../utils/ethers';
 import { ethers } from 'ethers';
 import { abi } from '../abi/SAFE_ABI';
-import { config } from '../config';
+import { testconfig, mainconfig } from '../config';
+import { getEthereumContractByChain } from '../constants/contracts';
 import { getChainId } from '@wagmi/core';
 import { loadProposalData } from '../utils/loadproposaldata';
-
-import { EthereumContracts } from '../constants/contracts';
+const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 const EVMManagerPage = () => {
+  const config = APP_ENV == 'dev' ? testconfig : mainconfig;
+
   const signer = useEthersSigner();
   const chainId = getChainId(config); // account, chainid, metamask
   const [proposal_data, setProposalData] = useState<any[]>([]);
   const [error, setError] = useState('');
-
-  const contractList: Record<number, string> = {
-    '84532': EthereumContracts.BASE_SEPOLIA_SAFE,
-    '11155111': EthereumContracts.SEPOLIA_SAFE,
-    '43113': EthereumContracts.FUJI_SAFE,
-    '43114': EthereumContracts.AVALANCHE,
-    '421614': EthereumContracts.ARBITRUM_SEPOLIA_SAFE,
-    '11155420': EthereumContracts.OPTIMISM_SEPOLIA_SAFE,
-    '42161': EthereumContracts.ARBITRUM,
-    '10': EthereumContracts.OPTIMISM,
-    '8453': EthereumContracts.BASE,
-  };
+  const contractAddress = getEthereumContractByChain(chainId.toString());
+  console.log('Chain id and contract address ', chainId, contractAddress);
 
   const handleSubmit = async (hash: string) => {
     console.log('');
@@ -43,7 +35,7 @@ const EVMManagerPage = () => {
     console.log('Signer:', signer);
 
     try {
-      let contract = new ethers.Contract(contractList[chainId], abi, signer);
+      let contract = new ethers.Contract(contractAddress, abi, signer);
       // const bytes32proposal = ethers.utils.formatBytes32String(proposalId);
       console.log(contract, 'contracts');
 
@@ -59,7 +51,7 @@ const EVMManagerPage = () => {
 
   useEffect(() => {
     console.log('Current chain ID:', chainId);
-    let address = contractList[chainId];
+    let address = contractAddress;
     console.log('Contract address:', address);
   }, [chainId]);
 
