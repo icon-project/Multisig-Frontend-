@@ -4,6 +4,7 @@ import { useContractData } from '../hooks/useContractData';
 import { useChain } from '@cosmos-kit/react';
 import { convertTimestampToDateTime } from '../utils/dateTimeUtils';
 import GeneralModal from './GeneralModal';
+import { CosmosChains } from '../constants/chains';
 
 export type Proposal = {
   id: number;
@@ -67,15 +68,16 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ approveAction
     const txMsg = {
       list_proposals: {},
     };
-    const { proposals } = await getContractData(txMsg);
+    const rpcUrl = Object.values(CosmosChains).filter((chain) => chain.chainName === chainName)[0].rpcUrl;
+    const { proposals } = await getContractData(txMsg, rpcUrl);
     setProposalList(proposals);
   };
 
   useEffect(() => {
-    if (address) {
+    if (address && chainName) {
       getProposals();
     }
-  }, [address]);
+  }, [address, chainName]);
 
   return (
     <>
