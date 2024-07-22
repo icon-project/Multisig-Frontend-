@@ -57,3 +57,10 @@ export const CosmosChains = {
 export const getCosmosChain = (chain: keyof typeof CosmosChains): cosmosChainDetails | undefined => {
   return CosmosChains[chain];
 };
+
+export type ethereumChainDetails = {
+  chainId: string;
+  chainName: string;
+  name: string;
+  networkType: string;
+};
