@@ -1,3 +1,4 @@
+import { BytesLike } from 'ethers';
 import { database } from '../firebase';
 import { ref, get, child } from 'firebase/database';
 
@@ -7,13 +8,15 @@ interface Proposal {
   value: Number;
   data: String;
   operation: Number;
+  safeTxGas: Number;
   baseGas: Number;
   gasPrice: Number;
   gasToken: String;
   refundReceiver: String;
   nonce: BigInt;
   execute: Boolean;
-  signatures: Array<Number>;
+  signatures: BytesLike[];
+
   chain: string;
   remark: String;
 }

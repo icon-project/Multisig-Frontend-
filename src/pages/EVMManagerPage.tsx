@@ -2,11 +2,13 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useEthersSigner } from '../utils/ethers';
-import { ethers } from 'ethers';
+import { BytesLike, ethers } from 'ethers';
 import { abi } from '../abi/SAFE_ABI';
 import { testconfig, mainconfig } from '../config';
 import { getEthereumContractByChain } from '../constants/contracts';
 import { getChainId } from '@wagmi/core';
+import { database } from '../firebase';
+import { ref, set, update } from 'firebase/database';
 import { loadProposalData } from '../utils/loadproposaldata';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
@@ -18,10 +20,41 @@ const EVMManagerPage = () => {
   const [proposal_data, setProposalData] = useState<any[]>([]);
   const [error, setError] = useState('');
   const contractAddress = getEthereumContractByChain(chainId.toString());
-  console.log('Chain id and contract address ', chainId, contractAddress);
+  console.log('Chain id and contract address and signer ', chainId, contractAddress, signer?._address);
 
-  const handleSubmit = async (hash: string) => {
-    console.log('');
+  type Proposal = {
+    proposal: String;
+    to: String;
+    value: Number;
+    data: String;
+    operation: Number;
+    baseGas: Number;
+    gasPrice: Number;
+    gasToken: String;
+    safeTxGas: Number;
+    refundReceiver: String;
+    nonce: BigInt;
+    execute: Boolean;
+    signatures: Array<BytesLike>;
+    chain: string;
+    remark: String;
+  };
+
+  //utils
+
+  function generateSignature() {
+    if (!signer || !signer._address) {
+      throw new Error('Signer address is not available');
+    }
+    const approverAddress = signer._address;
+    const r = ethers.utils.hexZeroPad(approverAddress, 32);
+    const s = ethers.utils.hexZeroPad(ethers.utils.hexlify(65), 32);
+    const v = 1;
+    return ethers.utils.hexConcat([r, s, ethers.utils.hexlify(v)]);
+  }
+  //signer and contract
+
+  const handleApprove = async (hash: string) => {
     if (!signer) {
       console.error('Signer is undefined. Check initialization.');
       setError('Connect wallet first');
@@ -34,16 +67,96 @@ const EVMManagerPage = () => {
 
     console.log('Signer:', signer);
 
+    let contract = new ethers.Contract(contractAddress, abi, signer);
     try {
-      let contract = new ethers.Contract(contractAddress, abi, signer);
-      // const bytes32proposal = ethers.utils.formatBytes32String(proposalId);
-      console.log(contract, 'contracts');
-
       const tx = await contract.approveHash(hash);
-
-      // Wait for the transaction to be mined
       await tx.wait();
       console.log('Transaction confirmed:', tx.hash);
+      let owners = await contract.getOwners();
+      console.log(owners);
+      console.log(await contract.getThreshold());
+      const signature = generateSignature();
+
+      console.log(`Hash ${hash} approved.`);
+      console.log(`Signature: ${signature}`);
+      // Wait for the transaction to be mined
+      const proposals = await loadProposalData();
+      const proposal = proposals.find((p) => p.proposal === hash);
+      if (!proposal) {
+        console.error(`Proposal with hash ${hash} not found.`);
+        process.exit(1);
+      }
+
+      if (!proposal.signatures) {
+        proposal.signatures = [];
+      }
+      console.log('Found proposal', proposal);
+      proposal.signatures.push(signature);
+      console.log(proposal.signatures);
+      proposal.signatures = owners
+        .map((owner: string) => owner.slice(2).toLowerCase())
+        .reverse()
+        .map((owner: string) => proposal.signatures.find((sig: any) => sig.includes(owner)))
+        .filter((sig: any) => sig !== undefined);
+      console.log(proposal.signatures, 'propo');
+
+      // Prepare the path to the specific proposal
+      // const proposalPath = `proposals/${hash}`;
+
+      // // Update the proposal in Firebase Realtime Database
+      // await update(ref(database, proposalPath), {
+      //   signatures: proposal.signatures,
+      // });
+      console.log(proposals, 'proposalsss');
+
+      const proposalRef = ref(database, 'proposals');
+      await set(proposalRef, proposals);
+
+      console.log('Updated proposals saved to Firebase.');
+      //data after update
+      const latest = await loadProposalData();
+      console.log('data afte r update', latest);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+  const handleExecute = async (proposal: Proposal) => {
+    if (!signer) {
+      console.error('Signer is undefined. Check initialization.');
+      setError('Connect wallet first');
+
+      setTimeout(() => {
+        setError('');
+      }, 4000);
+      return;
+    }
+
+    console.log('Signer:', signer);
+
+    let contract = new ethers.Contract(contractAddress, abi, signer);
+    console.log(contract);
+    try {
+      console.log(proposal.signatures, 'proposal signatures');
+      const encodedSignatures = ethers.utils.concat(proposal.signatures);
+      console.log('encoded sig', encodedSignatures);
+
+      const tx = await contract.executeTransaction(
+        proposal.to,
+        proposal.value,
+        proposal.data,
+        proposal.operation,
+        proposal.safeTxGas,
+        proposal.baseGas,
+        proposal.gasPrice,
+        proposal.gasToken,
+        proposal.refundReceiver,
+        encodedSignatures,
+        proposal.remark,
+      );
+
+      await tx.wait();
+
+      console.log(`Transaction executed with hash ${proposal.proposal}. ,$`);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -106,7 +219,7 @@ const EVMManagerPage = () => {
                       <button
                         className="d-btn"
                         onClick={() => {
-                          handleSubmit(proposal.proposal);
+                          handleApprove(proposal.proposal);
                         }}
                       >
                         Approve proposal
@@ -117,7 +230,7 @@ const EVMManagerPage = () => {
                         <button
                           className="d-btn"
                           onClick={() => {
-                            handleSubmit(proposal.proposal);
+                            handleExecute(proposal);
                           }}
                         >
                           Execute proposal
