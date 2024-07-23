@@ -7,14 +7,23 @@ import { prependHttpsIfNeeded } from '../utils/chainUtils';
 export const useContractData = (chainName: string) => {
   const { address, chain } = useChain(chainName);
 
-  const getContractData = async (msgs: { [key: string]: Record<string, never> }) => {
+  const getContractData = async (msgs: { [key: string]: Record<string, never> }, customRpcUrl: string = '') => {
     if (!address) {
       console.log('Wallet not connected. Please connect the wallet');
       return;
     }
 
     try {
-      const rpc_url = chain.apis?.rpc && chain.apis?.rpc[0].address;
+      let rpc_url: string;
+      if (customRpcUrl) {
+        rpc_url = customRpcUrl;
+      } else {
+        rpc_url =
+          (chain.apis?.rpc &&
+            chain.apis?.rpc.length > 0 &&
+            chain.apis.rpc[Math.floor(Math.random() * chain.apis.rpc.length)].address) ||
+          '';
+      }
       if (!rpc_url) throw new Error('No chain rpcUrl found.');
       const rpcUrl = prependHttpsIfNeeded(rpc_url);
 

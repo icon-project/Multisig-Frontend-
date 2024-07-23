@@ -1,36 +1,7 @@
-import { ReactNode, useEffect, useState } from 'react';
-import { useAppContext } from '../context/AppContext';
-import { useContractData } from '../hooks/useContractData';
-import { useChain } from '@cosmos-kit/react';
+import React, { ReactNode, useState } from 'react';
 import { convertTimestampToDateTime } from '../utils/dateTimeUtils';
 import GeneralModal from './GeneralModal';
-
-export type Proposal = {
-  id: number;
-  title: string;
-  description: string;
-  msgs: Array<{
-    wasm: {
-      execute: {
-        contract_addr: string;
-        msg: string;
-        funds: Array<any>;
-      };
-    };
-  }>;
-  status: string;
-  expires: {
-    at_time: string;
-  };
-  threshold: {
-    absolute_count: {
-      weight: number;
-      total_weight: number;
-    };
-  };
-  proposer: string;
-  deposit: any | null;
-};
+import { Proposal } from '../@types/CosmosProposalsTypes';
 
 interface ModalDetails {
   show: boolean;
@@ -38,12 +9,13 @@ interface ModalDetails {
   description: string | ReactNode;
 }
 
-const CosmosProposalsPage = () => {
-  const { state } = useAppContext();
-  const chainName = state.activeCosmosChain.chainName;
-  const { address } = useChain(chainName);
-  const { getContractData } = useContractData(chainName);
-  const [proposalList, setProposalList] = useState<Proposal[]>([]);
+interface CosmosProposalsPageProps {
+  proposals: Proposal[];
+  approveAction?: (proposalId: number) => void;
+  executeAction?: (proposalId: number) => void;
+}
+
+const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ proposals, approveAction, executeAction }) => {
   const [modalDetails, setModalDetails] = useState<ModalDetails>({
     show: false,
     title: '',
@@ -58,20 +30,6 @@ const CosmosProposalsPage = () => {
     });
   };
 
-  const getProposals = async () => {
-    const txMsg = {
-      list_proposals: {},
-    };
-    const { proposals } = await getContractData(txMsg);
-    setProposalList(proposals);
-  };
-
-  useEffect(() => {
-    if (address) {
-      getProposals();
-    }
-  }, [address]);
-
   return (
     <>
       <div className="overflow-x-auto">
@@ -81,22 +39,19 @@ const CosmosProposalsPage = () => {
               <th>Proposal Id</th>
               <th>Title</th>
               <th>Description</th>
-              <th>Deposil</th>
-              <th>Proposer</th>
               <th>Msgs</th>
               <th>Threshold</th>
               <th>Status</th>
               <th>Expires At</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {proposalList.map((proposal, index) => (
+            {proposals.map((proposal: Proposal, index: number) => (
               <tr key={index}>
                 <th>{proposal.id}</th>
                 <td>{proposal.title}</td>
                 <td>{proposal.description}</td>
-                <td>{proposal.deposit}</td>
-                <td>{proposal.proposer}</td>
                 <td>
                   <button
                     className="d-btn"
@@ -127,6 +82,20 @@ const CosmosProposalsPage = () => {
                 </td>
                 <td>{proposal.status}</td>
                 <td>{convertTimestampToDateTime(proposal.expires.at_time)}</td>
+                <td>
+                  <div className="flex gap-2">
+                    {approveAction && (
+                      <button className="d-btn" onClick={() => approveAction(Number(proposal.id))}>
+                        Approve
+                      </button>
+                    )}
+                    {executeAction && (
+                      <button className="d-btn" onClick={() => executeAction(Number(proposal.id))}>
+                        Execute
+                      </button>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
