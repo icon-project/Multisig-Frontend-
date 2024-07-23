@@ -8,6 +8,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import CosmosLayoutPage from './pages/CosmosLayoutPage';
 import EVMLayoutPage from './pages/EVMLayoutPage';
+import EVMProposalDetails from './pages/EVM/EVMProposalDetails';
 
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
@@ -27,6 +28,7 @@ function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/cosmos/*" element={<CosmosLayoutPage />} />
                   <Route path="/evm/*" element={<EVMLayoutPage />} />
+                  <Route path="/evm/proposals/:proposalId" element={<EVMProposalDetails />} />
                 </Routes>
               </Router>
             </div>
