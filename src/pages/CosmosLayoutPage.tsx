@@ -4,38 +4,39 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import CosmosWalletWidget from '../components/CosmosWalletWidget';
 import CosmosApproveProposalslPage from './Cosmos/CosmosApproveProposalslPage';
 import CosmosCreateProposalPage from './Cosmos/CosmosCreateProposalPage';
+import CosmosExecuteProposalslPage from './Cosmos/CosmosExecuteProposalsPage';
+import CosmosExecutedProposalsPage from './Cosmos/CosmosExecutedProposalsPage';
 
 interface SideNavRoutes {
-    name: string;
-    title: string;
-    route: string;
-  }
+  name: string;
+  title: string;
+  route: string;
+}
 
 const SideNavRoutes: SideNavRoutes[] = [
-    {
-        name: "approve-proposal",
-        title: "Approve Proposals",
-        route: "approve-proposals",
-    },
-    {
-        name: "create-proposal",
-        title: "Create Proposals",
-        route: "create-proposals",
-    },
-    {
-        name: "execute-proposal",
-        title: "Execute Proposals",
-        route: "execute-proposals",
-    },
-    {
-        name: "executed-proposal",
-        title: "Executed Proposals",
-        route: "executed-proposals",
-    },
+  {
+    name: 'create-proposal',
+    title: 'Create Proposals',
+    route: 'create-proposals',
+  },
+  {
+    name: 'approve-proposal',
+    title: 'Approve Proposals',
+    route: 'approve-proposals',
+  },
+  {
+    name: 'execute-proposal',
+    title: 'Execute Proposals',
+    route: 'execute-proposals',
+  },
+  {
+    name: 'executed-proposal',
+    title: 'Executed Proposals',
+    route: 'executed-proposals',
+  },
 ];
 
 const CosmosLayoutPage = () => {
-
   return (
     <div className="cosmos-page flex flex-col min-h-screen">
       <Navbar walletComponent={<CosmosWalletWidget />} />
@@ -45,8 +46,8 @@ const CosmosLayoutPage = () => {
           <Routes>
             <Route path="approve-proposals" element={<CosmosApproveProposalslPage />} />
             <Route path="create-proposals" element={<CosmosCreateProposalPage />} />
-            <Route path="execute-proposals" element={<>Execute Proposals</>} />
-            <Route path="executed-proposals" element={<>Executed Proposals</>} />
+            <Route path="execute-proposals" element={<CosmosExecuteProposalslPage />} />
+            <Route path="executed-proposals" element={<CosmosExecutedProposalsPage />} />
             <Route path="*" element={<Navigate to="approve-proposals" replace />} />
           </Routes>
         </div>
