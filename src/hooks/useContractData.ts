@@ -7,7 +7,7 @@ import { prependHttpsIfNeeded } from '../utils/chainUtils';
 export const useContractData = (chainName: string) => {
   const { address, chain } = useChain(chainName);
 
-  const getContractData = async (msgs: { [key: string]: Record<string, never> }, customRpcUrl: string = '') => {
+  const getContractData = async (msgs: { [key: string]: any }, customRpcUrl: string = '') => {
     if (!address) {
       console.log('Wallet not connected. Please connect the wallet');
       return;

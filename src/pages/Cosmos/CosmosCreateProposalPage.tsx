@@ -1,14 +1,27 @@
 import { useState } from 'react';
+import { useAppContext } from '../../context/AppContext';
+import { getCosmosContractByChain, getCosmosMultiSigMemberContractByChain } from '../../constants/contracts';
+import useToast from '../../hooks/useToast';
+import { CosmosChains } from '../../constants/chains';
+import { archwayExecuteContractUpgrade, archwayExecuteMemberManagement } from '../../services/archwayServices';
+import { injectiveExecuteContractUpgrade, injectiveExecuteMemberManagement } from '../../services/injectiveServices';
+
+const ProposalTypes = {
+  MemberManagement: 'member-management',
+  ContractUpgrade: 'contract-upgrade',
+};
 
 const CosmosCreateProposalPage = () => {
-  const [proposalType, setProposalType] = useState('member-management');
+  const [proposalType, setProposalType] = useState(ProposalTypes.MemberManagement);
   const [newThreshold, setNewThreshold] = useState('');
-  const [contractAddress, setContractAddress] = useState('');
+  const [upgradingContractAddress, setUpgradingContractAddress] = useState('');
   const [newCodeId, setNewCodeId] = useState('');
   const [membersToAdd, setMembersToAdd] = useState('');
   const [membersToRemove, setMembersToRemove] = useState('');
   const [membersToAddList, setMembersToAddList] = useState<string[]>([]);
   const [membersToRemoveList, setMembersToRemoveList] = useState<string[]>([]);
+  const { state } = useAppContext();
+  const { toast, ToastContainer } = useToast();
 
   const handleAddMember = () => {
     if (membersToAdd.trim() !== '') {
@@ -24,17 +37,111 @@ const CosmosCreateProposalPage = () => {
     }
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleMemberMgmtProposal = async () => {
+    const chainId = state.activeCosmosChain.chainId;
+    const chainName = state.activeCosmosChain.chainName;
+    const contractAddress = getCosmosContractByChain(chainName);
+    const multiSigMemberContract = getCosmosMultiSigMemberContractByChain(chainName);
+    if (!contractAddress || !multiSigMemberContract) {
+      console.log('No contract address or multi-sig member contract address found.');
+      return;
+    }
+
+    try {
+      let res;
+      const chain_name = state.activeCosmosChain.name;
+      if (chain_name === CosmosChains.archway.name) {
+        res = await archwayExecuteMemberManagement(
+          chainId,
+          contractAddress,
+          multiSigMemberContract,
+          'Member management and Threshold updates',
+          'Add/Remove Members and Update Threshold',
+          Number(newThreshold),
+          membersToAddList,
+          membersToRemoveList,
+        );
+      } else if (chain_name === CosmosChains.injective.name) {
+        res = await injectiveExecuteMemberManagement(
+          chainId,
+          contractAddress,
+          multiSigMemberContract,
+          'Member management and Threshold updates',
+          'Add/Remove Members and Update Threshold',
+          Number(newThreshold),
+          membersToAddList,
+          membersToRemoveList,
+        );
+      }
+      if (res) {
+        console.log('Transaction Success. TxHash', res);
+        toast(`Execute Success. TxHash: ${res}`, 'success');
+      }
+    } catch (err) {
+      toast(`Execute Failed: ${err}`, 'error');
+    }
+  };
+
+  const handleUpgradeContractProposal = async () => {
+    const chainId = state.activeCosmosChain.chainId;
+    const chainName = state.activeCosmosChain.chainName;
+    const contractAddress = getCosmosContractByChain(chainName);
+    const multiSigMemberContract = getCosmosMultiSigMemberContractByChain(chainName);
+    if (!contractAddress || !multiSigMemberContract) {
+      console.log('No contract address or multi-sig member contract address found.');
+      return;
+    }
+
+    try {
+      let res;
+      const chain_name = state.activeCosmosChain.name;
+      console.log(chain_name === CosmosChains.injective.name);
+      console.log(chain_name, CosmosChains.injective.name);
+      if (chain_name === CosmosChains.archway.name) {
+        res = await archwayExecuteContractUpgrade(
+          chainId,
+          contractAddress,
+          'Contract upgrade',
+          'Upgrade Contract',
+          upgradingContractAddress,
+          Number(newCodeId),
+        );
+      } else if (chain_name === CosmosChains.injective.name) {
+        res = await injectiveExecuteContractUpgrade(
+          chainId,
+          contractAddress,
+          'Contract upgrade',
+          'Upgrade Contract',
+          upgradingContractAddress,
+          Number(newCodeId),
+        );
+      }
+      if (res) {
+        console.log('Transaction Success. TxHash', res);
+        toast(`Execute Success. TxHash: ${res}`, 'success');
+      }
+    } catch (err) {
+      toast(`Execute Failed: ${err}`, 'error');
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Handle form submission
     console.log({
       proposalType,
       newThreshold,
-      contractAddress,
+      upgradingContractAddress,
       newCodeId,
       membersToAddList,
       membersToRemoveList,
     });
+
+    if (proposalType === ProposalTypes.MemberManagement) {
+      handleMemberMgmtProposal();
+    } else {
+      handleUpgradeContractProposal();
+    }
   };
 
   return (
@@ -52,12 +159,12 @@ const CosmosCreateProposalPage = () => {
               onChange={(e) => setProposalType(e.target.value)}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
             >
-              <option value="member-management">Member Management Proposal</option>
-              <option value="contract-upgrade">Contract Upgrade</option>
+              <option value={ProposalTypes.MemberManagement}>Member Management Proposal</option>
+              <option value={ProposalTypes.ContractUpgrade}>Contract Upgrade</option>
             </select>
           </div>
           <hr />
-          {proposalType === 'member-management' && (
+          {proposalType === ProposalTypes.MemberManagement && (
             <>
               <div className="mb-4">
                 <label htmlFor="membersToAdd" className="block text-sm font-medium text-gray-700">
@@ -129,18 +236,18 @@ const CosmosCreateProposalPage = () => {
             </>
           )}
 
-          {proposalType === 'contract-upgrade' && (
+          {proposalType === ProposalTypes.ContractUpgrade && (
             <>
               <div className="mb-4">
-                <label htmlFor="contractAddress" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="upgradingContractAddress" className="block text-sm font-medium text-gray-700">
                   Contract Address
                 </label>
                 <input
                   type="text"
-                  id="contractAddress"
+                  id="upgradingContractAddress"
                   placeholder="Enter contract address"
-                  value={contractAddress}
-                  onChange={(e) => setContractAddress(e.target.value)}
+                  value={upgradingContractAddress}
+                  onChange={(e) => setUpgradingContractAddress(e.target.value)}
                   className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                 />
               </div>
@@ -166,6 +273,8 @@ const CosmosCreateProposalPage = () => {
           </div>
         </form>
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

@@ -11,16 +11,27 @@ interface ModalDetails {
 
 interface CosmosProposalsPageProps {
   proposals: Proposal[];
+  limit: number;
+  offset: number;
+  handleOffsetChange: (offset: number) => void;
   approveAction?: (proposalId: number) => void;
   executeAction?: (proposalId: number) => void;
 }
 
-const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ proposals, approveAction, executeAction }) => {
+const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
+  proposals,
+  limit,
+  offset,
+  handleOffsetChange,
+  approveAction,
+  executeAction,
+}) => {
   const [modalDetails, setModalDetails] = useState<ModalDetails>({
     show: false,
     title: '',
     description: '',
   });
+  const currentPage = parseInt(`${offset / limit}`) + 1;
 
   const handleModalClose = () => {
     setModalDetails({
@@ -100,6 +111,26 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({ proposals, ap
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex gap-4 justify-center items-center mt-4 m-auto">
+        <button
+          className="d-btn"
+          onClick={() => {
+            handleOffsetChange(offset - limit);
+          }}
+        >
+          Prev
+        </button>
+        <div>{currentPage}</div>
+        <button
+          className="d-btn"
+          onClick={() => {
+            handleOffsetChange(offset + limit);
+          }}
+        >
+          Next
+        </button>
       </div>
 
       <GeneralModal
