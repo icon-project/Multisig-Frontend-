@@ -20,6 +20,8 @@ const CosmosApproveProposalslPage = () => {
   const { tx } = useTx(chainName);
   const { toast, ToastContainer } = useToast();
   const { getContractData } = useContractData(chainName);
+  const itemsPerPageLimit = 10;
+  const [itemsListOffset, setItemsListOffset] = useState(0);
 
   const handleInjectiveApprove = async (proposalId: number) => {
     const chainId = state.activeCosmosChain.chainId;
@@ -209,9 +211,12 @@ const CosmosApproveProposalslPage = () => {
     }
   };
 
-  const getProposals = async () => {
+  const getProposals = async (limit: number = 10, offset: number = 0) => {
     const txMsg = {
-      list_proposals: {},
+      list_proposals: {
+        limit: limit,
+        start_after: offset
+      },
     };
     const rpcUrl = Object.values(CosmosChains).filter((chain) => chain.chainName === chainName)[0].rpcUrl;
     const data = await getContractData(txMsg, rpcUrl);
@@ -223,17 +228,24 @@ const CosmosApproveProposalslPage = () => {
     }
   };
 
+  const handlePaginationChanges = (offset: number) => {
+    setItemsListOffset(offset);
+  }
+
   useEffect(() => {
-    if (address && chainName) {
-      getProposals();
+    if (address && chainName && itemsListOffset >= 0) {
+      getProposals(itemsPerPageLimit, itemsListOffset);
     }
-  }, [address, chainName]);
+  }, [address, chainName, itemsListOffset]);
 
   return (
     <div className="cosmos-approval-page w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
       <div className="mt-4 w-full max-w-[1600px]">
         <CosmosProposalsTable
           proposals={proposalList}
+          limit={itemsPerPageLimit}
+          offset={itemsListOffset}
+          handleOffsetChange={handlePaginationChanges}
           approveAction={handleApproveClick}
           executeAction={handleExecuteClick}
         />
