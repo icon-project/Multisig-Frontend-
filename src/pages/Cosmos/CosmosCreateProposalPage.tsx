@@ -4,6 +4,7 @@ import { getCosmosContractByChain, getCosmosMultiSigMemberContractByChain } from
 import useToast from '../../hooks/useToast';
 import { CosmosChains } from '../../constants/chains';
 import { archwayExecuteContractUpgrade, archwayExecuteMemberManagement } from '../../services/archwayServices';
+import { injectiveExecuteContractUpgrade, injectiveExecuteMemberManagement } from '../../services/injectiveServices';
 
 const ProposalTypes = {
   MemberManagement: 'member-management',
@@ -60,6 +61,17 @@ const CosmosCreateProposalPage = () => {
           membersToAddList,
           membersToRemoveList,
         );
+      } else if (chain_name === CosmosChains.injective.name) {
+        res = await injectiveExecuteMemberManagement(
+          chainId,
+          contractAddress,
+          multiSigMemberContract,
+          'Member management and Threshold updates',
+          'Add/Remove Members and Update Threshold',
+          Number(newThreshold),
+          membersToAddList,
+          membersToRemoveList,
+        );
       }
       if (res) {
         console.log('Transaction Success. TxHash', res);
@@ -83,8 +95,19 @@ const CosmosCreateProposalPage = () => {
     try {
       let res;
       const chain_name = state.activeCosmosChain.name;
+      console.log(chain_name === CosmosChains.injective.name);
+      console.log(chain_name, CosmosChains.injective.name);
       if (chain_name === CosmosChains.archway.name) {
         res = await archwayExecuteContractUpgrade(
+          chainId,
+          contractAddress,
+          'Contract upgrade',
+          'Upgrade Contract',
+          upgradingContractAddress,
+          Number(newCodeId),
+        );
+      } else if (chain_name === CosmosChains.injective.name) {
+        res = await injectiveExecuteContractUpgrade(
           chainId,
           contractAddress,
           'Contract upgrade',
