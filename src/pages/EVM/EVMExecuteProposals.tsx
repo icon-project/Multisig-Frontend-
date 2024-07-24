@@ -6,7 +6,6 @@ import { testconfig, mainconfig } from '../../config';
 import { getEthereumContractByChain } from '../../constants/contracts';
 import { getChainId } from '@wagmi/core';
 import { loadProposalData } from '../../utils/loadproposaldata';
-import { Link } from 'react-router-dom';
 import Modal from '../../Modals/Modal.tsx';
 
 const APP_ENV = import.meta.env.VITE_APP_ENV;
@@ -22,26 +21,25 @@ const EVMExecuteProposals = () => {
   const contractAddress = getEthereumContractByChain(chainId.toString());
   console.log('Chain id and contract address ', chainId, contractAddress);
   const [thres, setThresh] = useState<number>(0);
-  const [status, setStatus] = useState('Open');
   let contract = new ethers.Contract(contractAddress, abi, signer);
   const buttonName = 'Execute Proposal';
 
   type Proposal = {
-    proposal: String;
-    to: String;
-    value: Number;
-    data: String;
-    operation: Number;
-    baseGas: Number;
-    gasPrice: Number;
-    gasToken: String;
-    safeTxGas: Number;
-    refundReceiver: String;
-    nonce: BigInt;
-    execute: Boolean;
+    proposal: string;
+    to: string;
+    value: number;
+    data: string;
+    operation: number;
+    baseGas: number;
+    gasPrice: number;
+    gasToken: string;
+    safeTxGas: number;
+    refundReceiver: string;
+    nonce: bigint;
+    execute: boolean;
     signatures: Array<BytesLike>;
     chain: string;
-    remark: String;
+    remark: string;
   };
   const handleClose = () => {
     setOpen(false);
@@ -182,6 +180,9 @@ const EVMExecuteProposals = () => {
           proposal={selectedProposal}
           buttonName={buttonName}
         />
+      )}
+      {error && (
+        <p className="text-white bg-red-500 border border-red-600 fixed top-32 right-1 w-fit p-2 h-10">{error}</p>
       )}
     </div>
   );

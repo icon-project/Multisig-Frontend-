@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useEthersSigner } from '../../utils/ethers';
-import { ethers } from 'ethers';
+import { BytesLike, ethers } from 'ethers';
 import { abi } from '../../abi/SAFE_ABI';
 import { testconfig, mainconfig } from '../../config';
 import { getEthereumContractByChain } from '../../constants/contracts';
 import { getChainId } from '@wagmi/core';
-import { Link } from 'react-router-dom';
 import { database } from '../../firebase';
-import { ref, set, update } from 'firebase/database';
+import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
 import Modal from '../../Modals/Modal.tsx';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
@@ -23,7 +22,6 @@ const EVMApproveProposalsPage = () => {
   const [proposal_data, setProposalData] = useState<any[]>([]);
   const [error, setError] = useState('');
   const contractAddress = getEthereumContractByChain(chainId.toString());
-  const [status, setStatus] = useState('Open');
   const [thres, setThresh] = useState<number>(0);
   const buttonName = 'Approve Proposal';
 
@@ -231,7 +229,7 @@ const EVMApproveProposalsPage = () => {
         />
       )}
       {error && (
-        <p className="text-white bg-red-500 border border-red-600 absolute top-32 right-1 w-fit p-2 h-10">{error}</p>
+        <p className="text-white bg-red-500 border border-red-600 fixed top-32 right-1 w-fit p-2 h-10">{error}</p>
       )}
     </div>
   );

@@ -15,7 +15,7 @@ const APP_ENV = import.meta.env.VITE_APP_ENV;
 const EVMCreateProposalPage = () => {
   const SENITAL_OWNERS = '0x0000000000000000000000000000000000000001';
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<any>('');
 
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [formData, setFormData] = useState({

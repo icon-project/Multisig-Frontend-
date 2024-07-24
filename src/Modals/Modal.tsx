@@ -1,30 +1,29 @@
-import { ethers } from 'ethers';
+import { BytesLike, ethers } from 'ethers';
 import { FaTimes } from 'react-icons/fa';
 
 type Proposal = {
-  proposal: String;
-  to: String;
-  value: Number;
-  data: String;
-  operation: Number;
-  baseGas: Number;
-  gasPrice: Number;
-  gasToken: String;
-  safeTxGas: Number;
-  refundReceiver: String;
-  nonce: BigInt;
-  execute: Boolean;
+  proposal: string;
+  to: string;
+  value: number;
+  data: string;
+  operation: number;
+  baseGas: number;
+  gasPrice: number;
+  gasToken: string;
+  safeTxGas: number;
+  refundReceiver: string;
+  nonce: bigint;
+  execute: boolean;
+  abi: [];
   signatures: Array<BytesLike>;
   chain: string;
-  remark: String;
-  abi: [];
+  remark: string;
 };
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  handleApprove: (hash: string | Proposal) => void;
-
+  handleApprove: (proposalOrHash: Proposal) => Promise<void>;
   thres: number;
   proposal?: Proposal;
   buttonName: string;
@@ -51,7 +50,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, handleApprove, thres, pr
     const iface = new ethers.utils.Interface(proposal.abi);
     const functionName = Object.keys(iface.functions)[0]; // Get function name from ABI
     console.log('Function name:', functionName);
-    decodedData = iface.decodeFunctionData(functionName, proposal.data);
+    decodedData = iface.decodeFunctionData(functionName, proposal.data.toString());
 
     func = functionName.split('(')[0];
     console.log('Decoded data:', decodedData);
@@ -108,7 +107,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, handleApprove, thres, pr
         className="d-btn mt-5 border-black"
         onClick={() => {
           // Call handleApprove with proposal.proposal as hash if it's executing
-          handleApprove(proposal.proposal);
+          handleApprove(proposal);
         }}
       >
         {buttonName}
