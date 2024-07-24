@@ -11,7 +11,7 @@ import { CosmosChains } from '../../constants/chains';
 import { useContractData } from '../../hooks/useContractData';
 import { Proposal, ProposalStatus } from '../../@types/CosmosProposalsTypes';
 
-const CosmosApproveProposalslPage = () => {
+const CosmosExecuteProposalslPage = () => {
   const { state } = useAppContext();
   const chainName = state.activeCosmosChain.chainName;
   const contractAddress = getCosmosContractByChain(chainName);
@@ -23,60 +23,56 @@ const CosmosApproveProposalslPage = () => {
   const itemsPerPageLimit = 10;
   const [itemsListOffset, setItemsListOffset] = useState(0);
 
-  const handleInjectiveApprove = async (proposalId: number) => {
+  const handleInjectiveExecute = async (proposalId: number) => {
     const chainId = state.activeCosmosChain.chainId;
     if (!contractAddress) {
       console.log('No contract address found.');
       return;
     }
-    const voteValue = 'yes';
     const txMsg = {
-      vote: {
+      execute: {
         proposal_id: proposalId,
-        vote: voteValue,
       },
     };
+
     try {
       const res = await executeInjectiveContractCall(chainId, contractAddress, txMsg);
       if (res) {
-        console.log('Approval Success. TxHash', res);
-        toast(`Approval Success. TxHash: ${res}`, 'success');
+        console.log('Transaction Success. TxHash', res);
+        toast(`Execute Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
-      toast(`Approval Failed: ${err}`, 'error');
+      toast(`Execute Failed: ${err}`, 'error');
     }
   };
 
-  const handleArchwayApprove = async (proposalId: number) => {
+  const handleArchwayExecute = async (proposalId: number) => {
     const chainId = state.activeCosmosChain.chainId;
     if (!contractAddress) {
       console.log('No contract address found.');
       return;
     }
-    const voteValue = 'yes';
     const txMsg = {
-      vote: {
-        proposal_id: Number(proposalId),
-        vote: voteValue,
+      execute: {
+        proposal_id: proposalId,
       },
     };
+
     try {
       const res = await executeArchwayContractCall(chainId, contractAddress, txMsg);
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        toast(`Approval Success. TxHash: ${res}`, 'success');
+        toast(`Execute Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
-      toast(`Approval Failed: ${err}`, 'error');
+      toast(`Execute Failed: ${err}`, 'error');
     }
   };
 
-  const handleApprove = async (proposalId: number) => {
-    const voteValue = 'yes';
+  const handleExecute = async (proposalId: number) => {
     const txMsg = {
-      vote: {
+      execute: {
         proposal_id: proposalId,
-        vote: voteValue,
       },
     };
 
@@ -97,25 +93,25 @@ const CosmosApproveProposalslPage = () => {
       });
       if (res) {
         console.log('Transaction Success. TxHash', res);
-        toast(`Approval Success. TxHash: ${res}`, 'success');
+        toast(`Execute Success. TxHash: ${res}`, 'success');
       }
     } catch (err) {
-      toast(`Approval Failed: ${err}`, 'error');
+      toast(`Execute Failed: ${err}`, 'error');
     }
   };
 
-  const handleApproveClick = (proposalId: number) => {
+  const handleExecuteClick = (proposalId: number) => {
     if (!isWalletConnected) {
       connect();
       return;
     }
     const chain_name = state.activeCosmosChain.name;
     if (chain_name === 'injective') {
-      handleInjectiveApprove(proposalId);
+      handleInjectiveExecute(proposalId);
     } else if (chain_name === 'archway') {
-      handleArchwayApprove(proposalId);
+      handleArchwayExecute(proposalId);
     } else {
-      handleApprove(proposalId);
+      handleExecute(proposalId);
     }
   };
 
@@ -129,7 +125,9 @@ const CosmosApproveProposalslPage = () => {
     const rpcUrl = Object.values(CosmosChains).filter((chain) => chain.chainName === chainName)[0].rpcUrl;
     const data = await getContractData(txMsg, rpcUrl);
     if (data?.proposals) {
-      const filteredProposals = data.proposals.filter((proposal: Proposal) => proposal.status === ProposalStatus.open);
+      const filteredProposals = data.proposals.filter(
+        (proposal: Proposal) => proposal.status === ProposalStatus.passed,
+      );
       setProposalList(filteredProposals);
     }
   };
@@ -152,7 +150,7 @@ const CosmosApproveProposalslPage = () => {
           limit={itemsPerPageLimit}
           offset={itemsListOffset}
           handleOffsetChange={handlePaginationChanges}
-          approveAction={handleApproveClick}
+          executeAction={handleExecuteClick}
         />
       </div>
 
@@ -161,4 +159,4 @@ const CosmosApproveProposalslPage = () => {
   );
 };
 
-export default CosmosApproveProposalslPage;
+export default CosmosExecuteProposalslPage;
