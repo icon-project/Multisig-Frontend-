@@ -9,10 +9,13 @@ import { abi } from '../../abi/SAFE_ABI';
 import { database } from '../../firebase';
 import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
+import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 const EVMCreateProposalPage = () => {
   const SENITAL_OWNERS = '0x0000000000000000000000000000000000000001';
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [formData, setFormData] = useState({
@@ -81,6 +84,9 @@ const EVMCreateProposalPage = () => {
       execute: false,
       signatures,
       chain: chain.toString(),
+      abi: ['function addOwnerWithThreshold(address owner, uint256 _threshold) public override'],
+      func: 'addOwnerWithThreshold',
+
       remark: 'Add member ' + memberData.owner,
     };
 
@@ -93,6 +99,7 @@ const EVMCreateProposalPage = () => {
       console.log('Proposal data saved to proposal_data.json');
     } else {
       console.log('Proposal hash already exists. No new proposal added.');
+      setError('Proposal hash already exists. No new proposal added.');
     }
   };
   const removeMember = async () => {
@@ -147,7 +154,9 @@ const EVMCreateProposalPage = () => {
       refundReceiver,
       nonce: nonce.toString(),
       execute: false,
-      abi: [],
+      abi: ['function removeOwner(address prevOwner, address owner, uint256 _threshold) public override'],
+      func: 'removeOwner',
+
       signatures,
       chain: chain.toString(),
       remark: 'Remove member ' + memberData.owner,
@@ -224,6 +233,9 @@ const EVMCreateProposalPage = () => {
         execute: false,
         signatures: signatures,
         chain: chain.toString(),
+        abi: ['function upgradeAndCall(address proxy, address implementation, bytes data)'],
+        func: 'upgradeAndCall',
+
         remark: formData.remarks,
       };
 
@@ -258,20 +270,34 @@ const EVMCreateProposalPage = () => {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
     console.log('executing proposal', proposalType, action);
-    // console.log('executing proposal', proposalType, action);
-    if (proposalType === 'member-management') {
-      console.log('executing proposal', action);
-      if (action === 'add-member') {
-        console.log('calling add member');
-        addMember();
+
+    try {
+      if (proposalType === 'member-management') {
+        console.log('executing proposal', action);
+        if (action === 'add-member') {
+          console.log('calling add member');
+
+          addMember();
+          setLoading(false);
+        } else {
+          console.log('calling remove member');
+          removeMember();
+          setLoading(false);
+        }
       } else {
-        console.log('calling remove member');
-        removeMember();
+        callCreateProposal();
+        setLoading(false);
       }
-    } else {
-      callCreateProposal();
+    } catch (e) {
+      console.log(e, '286');
+      setError(e);
+      setTimeout(() => {
+        setError('');
+      }, 5);
     }
+    // console.log('executing proposal', proposalType, action);
   };
 
   useEffect(() => {
@@ -288,9 +314,14 @@ const EVMCreateProposalPage = () => {
   // }, [formData, proposalJson]);
   useEffect(() => {
     console.log('Current chain ID:', chain);
+
     let address = contractAddress;
     console.log('Contract address:', address);
   }, [chain]);
+
+  useEffect(() => {
+    console.log(error, 'error');
+  }, [error]);
   useEffect(() => {
     console.log(action);
     console.log(proposalType);
@@ -429,8 +460,16 @@ const EVMCreateProposalPage = () => {
               <button type="submit" className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-500">
                 Submit Proposal
               </button>
+              {loading ? <SpinningCircles fill="black" className="w-10 h-10 inline pl-3" /> : ''}
             </div>
           </form>
+          {error ? (
+            <p className="w-fit h-10 p-3 border border-red-700 bg-red-500 text-white text-l fixed top-32 right-4">
+              {error}
+            </p>
+          ) : (
+            ''
+          )}
         </div>
       </div>
     </>

@@ -9,40 +9,41 @@ import { Link } from 'react-router-dom';
 import { database } from '../../firebase';
 import { ref, set, update } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
+import Modal from '../../Modals/Modal.tsx';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
+
+import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 
 const EVMApproveProposalsPage = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
-
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
   const signer = useEthersSigner();
   const chainId = getChainId(config); // account, chainid, metamask
   const [proposal_data, setProposalData] = useState<any[]>([]);
   const [error, setError] = useState('');
   const contractAddress = getEthereumContractByChain(chainId.toString());
   const [status, setStatus] = useState('Open');
-  const [thres, setThresh] = useState<Number>();
+  const [thres, setThresh] = useState<number>(0);
+  const buttonName = 'Approve Proposal';
+
+  const [selectedProposal, setSelectedProposal] = useState<any>(null);
+
   console.log('Chain id and contract address and signer ', chainId, contractAddress, signer?._address);
 
   let contract = new ethers.Contract(contractAddress, abi, signer);
 
-  // type Proposal = {
-  //   proposal: String;
-  //   to: String;
-  //   value: Number;
-  //   data: String;
-  //   operation: Number;
-  //   baseGas: Number;
-  //   gasPrice: Number;
-  //   gasToken: String;
-  //   safeTxGas: Number;
-  //   refundReceiver: String;
-  //   nonce: BigInt;
-  //   execute: Boolean;
-  //   signatures: Array<BytesLike>;
-  //   chain: string;
-  //   remark: String;
-  // };
+  const handleClose = () => {
+    setOpen(false);
+  };
+  const handleOpen = (proposal: any) => {
+    setSelectedProposal(proposal);
+    setOpen(true);
+  };
 
+  useEffect(() => {
+    console.log(open);
+  }, [open]);
   function generateSignature() {
     if (!signer || !signer._address) {
       throw new Error('Signer address is not available');
@@ -54,7 +55,26 @@ const EVMApproveProposalsPage = () => {
     return ethers.utils.hexConcat([r, s, ethers.utils.hexlify(v)]);
   }
 
-  const handleApprove = async (hash: string) => {
+  type Proposal = {
+    proposal: String;
+    to: String;
+    value: Number;
+    data: String;
+    operation: Number;
+    baseGas: Number;
+    gasPrice: Number;
+    gasToken: String;
+    safeTxGas: Number;
+    refundReceiver: String;
+    nonce: BigInt;
+    execute: Boolean;
+    signatures: Array<BytesLike>;
+    chain: string;
+    remark: String;
+  };
+
+  const handleApprove = async (hash: string | Proposal) => {
+    setLoading(true);
     if (!signer) {
       console.error('Signer is undefined. Check initialization.');
       setError('Connect wallet first');
@@ -62,6 +82,7 @@ const EVMApproveProposalsPage = () => {
       setTimeout(() => {
         setError('');
       }, 4000);
+      setLoading(false);
       return;
     }
 
@@ -100,13 +121,6 @@ const EVMApproveProposalsPage = () => {
         .filter((sig: any) => sig !== undefined);
       console.log(proposal.signatures, 'propo');
 
-      // Prepare the path to the specific proposal
-      // const proposalPath = `proposals/${hash}`;
-
-      // // Update the proposal in Firebase Realtime Database
-      // await update(ref(database, proposalPath), {
-      //   signatures: proposal.signatures,
-      // });
       console.log(proposals, 'proposalsss');
 
       const proposalRef = ref(database, 'proposals');
@@ -116,8 +130,10 @@ const EVMApproveProposalsPage = () => {
       //data after update
       const latest = await loadProposalData();
       console.log('data afte r update', latest);
+      setLoading(false);
     } catch (error) {
       console.error('Error:', error);
+      setLoading(false);
     }
   };
 
@@ -152,54 +168,70 @@ const EVMApproveProposalsPage = () => {
 
   return (
     <div className="evm-manager-page">
-      <div>
-        <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
-          <thead>
-            <tr>
-              <th>Proposal Hash</th>
-              <th className="w-96">Title </th>
-              <th>Status</th>
-              <th>Action</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {proposal_data.length > 0 ? (
-              proposal_data.map((proposal, index) => (
-                <tr key={index} className="">
-                  <td className=" ">{proposal.proposal}</td>
-
-                  <td className="w-96">{proposal.remark}</td>
-                  <td> {proposal.signatures ? (proposal.signatures.length === thres ? 'Passed' : 'Open') : 'Open'}</td>
-                  <td>
-                    <button
-                      className="d-btn"
-                      onClick={() => {
-                        handleApprove(proposal.proposal);
-                      }}
-                    >
-                      Approve proposal
-                    </button>
-                  </td>
-                  <td>
-                    <Link to={`/evm/proposals/${proposal.proposal}`} state={{ proposal }}>
-                      <button className="d-btn">Details</button>
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            ) : (
+      {loading ? <SpinningCircles fill="black" className="w-10 h-10 inline pl-3 absolute top-2" /> : ''}
+      {!open ? (
+        <div className="overflow-x-auto">
+          <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
+            <thead>
               <tr>
-                <td className="text-center">No proposals</td>
+                <th>Proposal Hash</th>
+                <th className="w-6">Title </th>
+                <th>Status</th>
+                <th>Action</th>
+                <th>Details</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      {error != '' ? (
-        <p className="text-white bg-red-500 border  border-red-600 absolute top-32 right-1 w-fit p-2 h-10">{error}</p>
+            </thead>
+            <tbody>
+              {proposal_data.length > 0 ? (
+                proposal_data.map((proposal, index) => (
+                  <tr key={index} className="">
+                    <td className=" ">{proposal.proposal}</td>
+
+                    <td className="w-96">{proposal.remark}</td>
+                    <td>
+                      {' '}
+                      {proposal.signatures ? (proposal.signatures.length === thres ? 'Passed' : 'Open') : 'Open'}
+                    </td>
+                    <td>
+                      <button
+                        className="d-btn"
+                        onClick={() => {
+                          handleApprove(proposal.proposal);
+                        }}
+                      >
+                        Approve proposal
+                      </button>
+                    </td>
+                    <td>
+                      {/* <Link to={`/evm/proposals/${proposal.proposal}`} state={{ proposal, thres, contract }}> */}
+                      <button className="d-btn" onClick={() => handleOpen(proposal)}>
+                        Details
+                      </button>
+
+                      {/* </Link> */}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="text-center">No proposals</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        ''
+        <Modal
+          isOpen={open}
+          onClose={handleClose}
+          handleApprove={handleApprove}
+          thres={thres}
+          proposal={selectedProposal}
+          buttonName={buttonName}
+        />
+      )}
+      {error && (
+        <p className="text-white bg-red-500 border border-red-600 absolute top-32 right-1 w-fit p-2 h-10">{error}</p>
       )}
     </div>
   );

@@ -7,10 +7,13 @@ import { getEthereumContractByChain } from '../../constants/contracts';
 import { getChainId } from '@wagmi/core';
 import { loadProposalData } from '../../utils/loadproposaldata';
 import { Link } from 'react-router-dom';
+import Modal from '../../Modals/Modal.tsx';
 
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 const EVMExecuteProposals = () => {
+  const [selectedProposal, setSelectedProposal] = useState<any>(null);
+  const [open, setOpen] = useState(false);
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const signer = useEthersSigner();
   const chainId = getChainId(config); // account, chainid, metamask
@@ -18,9 +21,10 @@ const EVMExecuteProposals = () => {
   const [error, setError] = useState('');
   const contractAddress = getEthereumContractByChain(chainId.toString());
   console.log('Chain id and contract address ', chainId, contractAddress);
-  const [thres, setThresh] = useState<Number>();
+  const [thres, setThresh] = useState<number>(0);
   const [status, setStatus] = useState('Open');
   let contract = new ethers.Contract(contractAddress, abi, signer);
+  const buttonName = 'Execute Proposal';
 
   type Proposal = {
     proposal: String;
@@ -38,6 +42,13 @@ const EVMExecuteProposals = () => {
     signatures: Array<BytesLike>;
     chain: string;
     remark: String;
+  };
+  const handleClose = () => {
+    setOpen(false);
+  };
+  const handleOpen = (proposal: any) => {
+    setSelectedProposal(proposal);
+    setOpen(true);
   };
 
   const handleExecute = async (proposal: Proposal) => {
@@ -111,50 +122,67 @@ const EVMExecuteProposals = () => {
   });
   return (
     <div className="evm-manager-page">
-      <div>
-        <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
-          <thead>
-            <tr>
-              <th>Proposal Hash</th>
-              <th className="w-96">Title </th>
-              <th>Status</th>
-              <th>Action</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {proposal_data.length > 0 ? (
-              proposal_data.map((proposal, index) => (
-                <tr key={index} className="">
-                  <td className=" ">{proposal.proposal}</td>
-
-                  <td className="w-96">{proposal.remark}</td>
-                  <td> {proposal.signatures ? (proposal.signatures.length === thres ? 'Passed' : 'Open') : 'Open'}</td>
-                  <td>
-                    <button
-                      className="d-btn"
-                      onClick={() => {
-                        handleExecute(proposal);
-                      }}
-                    >
-                      Execute proposal
-                    </button>
-                  </td>
-                  <td>
-                    <Link to={`/evm/proposals/${proposal.proposal}`} state={{ proposal }}>
-                      <button className="d-btn">Details</button>
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            ) : (
+      {/* {loading ? <SpinningCircles fill="black" className="w-10 h-10 inline pl-3 absolute top-2" /> : ''} */}
+      {!open ? (
+        <div className="overflow-x-auto">
+          <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
+            <thead>
               <tr>
-                <td className="text-center">No proposals</td>
+                <th>Proposal Hash</th>
+                <th className="w-96">Title </th>
+                <th>Status</th>
+                <th>Action</th>
+                <th>Details</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {proposal_data.length > 0 ? (
+                proposal_data.map((proposal, index) => (
+                  <tr key={index} className="">
+                    <td className=" ">{proposal.proposal}</td>
+
+                    <td className="w-96">{proposal.remark}</td>
+                    <td>
+                      {' '}
+                      {proposal.signatures ? (proposal.signatures.length === thres ? 'Passed' : 'Open') : 'Open'}
+                    </td>
+                    <td>
+                      <button
+                        className="d-btn"
+                        onClick={() => {
+                          handleExecute(proposal);
+                        }}
+                      >
+                        Execute proposal
+                      </button>
+                    </td>
+                    <td>
+                      {/* <Link to={`/evm/proposals/${proposal.proposal}`} state={{ proposal }}> */}
+                      <button className="d-btn" onClick={() => handleOpen(proposal)}>
+                        Details
+                      </button>{' '}
+                      {/* </Link> */}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="text-center">No proposals</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <Modal
+          isOpen={open}
+          onClose={handleClose}
+          handleApprove={handleExecute}
+          thres={thres}
+          proposal={selectedProposal}
+          buttonName={buttonName}
+        />
+      )}
     </div>
   );
 };

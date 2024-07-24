@@ -1,0 +1,12 @@
+/* custom-styles.css */
+.table-column-small {
+  width: 20px;
+}
+
+.table-column-medium {
+  width: 100px;
+}
+
+.table-column-large {
+  width: 200px;
+}
