@@ -2,6 +2,10 @@ const ARCHWAY_CONTRACT_ADDRESS = import.meta.env.VITE_APP_ARCHWAY_CONTRACT_ADDRE
 const INJECTIVE_CONTRACT_ADDRESS = import.meta.env.VITE_APP_INJECTIVE_CONTRACT_ADDRESS;
 const NEUTRON_CONTRACT_ADDRESS = import.meta.env.VITE_APP_NEUTRON_CONTRACT_ADDRESS;
 
+const ARCHWAY_MULTISIG_MEMBER_CONTRACT_ADDRESS = import.meta.env.VITE_APP_ARCHWAY_MULTISIG_MEMBER_CONTRACT_ADDRESS;
+const INJECTIVE_MULTISIG_MEMBER_CONTRACT_ADDRESS = import.meta.env.VITE_APP_INJECTIVE_MULTISIG_MEMBER_CONTRACT_ADDRESS;
+const NEUTRON_MULTISIG_MEMBER_CONTRACT_ADDRESS = import.meta.env.VITE_APP_NEUTRON_MULTISIG_MEMBER_CONTRACT_ADDRESS;
+
 const ETHEREUM_CONTRACT_ADDRESS = import.meta.env.VITE_APP_ETHEREUM_CONTRACT_ADDRESS;
 const ARBITRUM_CONTRACT_ADDRESS = import.meta.env.VITE_APP_ARBITRUM_CONTRACT_ADDRESS;
 const BASE_CONTRACT_ADDRESS = import.meta.env.VITE_APP_BASE_CONTRACT_ADDRESS;
@@ -31,6 +35,15 @@ export const CosmosContracts: CosmosContracts = {
   neutrontestnet: NEUTRON_CONTRACT_ADDRESS,
 };
 
+export const CosmosMultiSigMemberContracts: CosmosContracts = {
+  archway: ARCHWAY_MULTISIG_MEMBER_CONTRACT_ADDRESS,
+  injective: INJECTIVE_MULTISIG_MEMBER_CONTRACT_ADDRESS,
+  neutron: NEUTRON_MULTISIG_MEMBER_CONTRACT_ADDRESS,
+  archwaytestnet: ARCHWAY_MULTISIG_MEMBER_CONTRACT_ADDRESS,
+  injectivetestnet: INJECTIVE_MULTISIG_MEMBER_CONTRACT_ADDRESS,
+  neutrontestnet: NEUTRON_MULTISIG_MEMBER_CONTRACT_ADDRESS,
+}
+
 export const EthereumContracts: EthereumContractsType = {
   '1': ETHEREUM_CONTRACT_ADDRESS,
   '42161': ARBITRUM_CONTRACT_ADDRESS,
@@ -48,6 +61,12 @@ export const EthereumContracts: EthereumContractsType = {
 export const getCosmosContractByChain = (chain: string): string | undefined => {
   if (chain in CosmosContracts) {
     return CosmosContracts[chain as keyof CosmosContracts];
+  }
+};
+
+export const getCosmosMultiSigMemberContractByChain = (chain: string): string | undefined => {
+  if (chain in CosmosMultiSigMemberContracts) {
+    return CosmosMultiSigMemberContracts[chain as keyof CosmosContracts];
   }
 };
 

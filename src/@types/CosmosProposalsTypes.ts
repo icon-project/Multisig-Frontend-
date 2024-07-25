@@ -1,3 +1,9 @@
+export const ProposalStatus = {
+  open: "open",
+  passed: "passed",
+  executed: "executed",
+}
+
 export interface Proposal {
   id: number;
   title: string;
