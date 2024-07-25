@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useEthersSigner } from '../../utils/ethers';
 import { BytesLike, ethers } from 'ethers';
 import { abi } from '../../abi/SAFE_ABI';
+import { Link } from 'react-router-dom';
 import useToast from '../../hooks/useToast';
 import { testconfig, mainconfig } from '../../config';
 import { getEthereumContractByChain } from '../../constants/contracts';
@@ -207,12 +208,9 @@ const EVMApproveProposalsPage = () => {
                       </button>
                     </td>
                     <td>
-                      {/* <Link to={`/evm/proposals/${proposal.proposal}`} state={{ proposal, thres, contract }}> */}
-                      <button className="d-btn" onClick={() => handleOpen(proposal)}>
-                        Details
-                      </button>
-
-                      {/* </Link> */}
+                      <Link to={`/evm/proposals/${proposal.proposal}`}>
+                        <button className="d-btn">Details</button>
+                      </Link>
                     </td>
                   </tr>
                 ))
