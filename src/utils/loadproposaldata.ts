@@ -3,6 +3,7 @@ import { database } from '../firebase';
 import { ref, get, child } from 'firebase/database';
 
 interface Proposal {
+  status: string;
   proposal: String;
   to: String;
   value: Number;

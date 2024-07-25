@@ -23,7 +23,7 @@ type Proposal = {
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  handleApprove: (proposalOrHash: Proposal) => Promise<void>;
+  handleApprove: (proposalOrHash: Proposal | string) => Promise<void>;
   thres: number;
   proposal?: Proposal;
   buttonName: string;

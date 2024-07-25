@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { testconfig, mainconfig } from '../../config';
 import { getChainId } from '@wagmi/core';
-import { useEthersSigner } from '../../utils/ethers';
-import { BytesLike, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { getEthereumContractByChain } from '../../constants/contracts';
-
+import { createProposalData } from '../../services/evmServices';
 import { abi } from '../../abi/SAFE_ABI';
+import useToast from '../../hooks/useToast';
+import { useEthersSigner } from '../../utils/ethers';
 import { database } from '../../firebase';
 import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
@@ -13,9 +14,10 @@ import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-ci
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 const EVMCreateProposalPage = () => {
+  const signer = useEthersSigner();
+  const { toast, ToastContainer } = useToast();
   const SENITAL_OWNERS = '0x0000000000000000000000000000000000000001';
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<any>('');
 
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [formData, setFormData] = useState({
@@ -34,150 +36,126 @@ const EVMCreateProposalPage = () => {
   const chainId = getChainId(config);
   const contractAddress = getEthereumContractByChain(chainId.toString());
   const [action, setAction] = useState('add-member');
-  const signer = useEthersSigner();
+
   const chain = getChainId(config);
 
   console.log('Chain', chain);
 
   const addMember = async () => {
-    let contract = new ethers.Contract(contractAddress, abi, signer);
-    const encodedData = contract.interface.encodeFunctionData('addOwnerWithThreshold', [
-      memberData.owner,
-      Number(memberData.threshold),
-    ]);
-    const nonce = await contract.nonce();
-    const to = contractAddress;
-    const value = 0;
-    const data = encodedData;
-    const operation = 0;
-    const safeTxGas = 0;
-    const baseGas = 0;
-    const gasPrice = 0;
-    const gasToken = ethers.constants.AddressZero;
-    const signatures: BytesLike[] = [];
-    const refundReceiver = ethers.constants.AddressZero;
+    setLoading(true);
+    try {
+      let contract = new ethers.Contract(contractAddress, abi, signer);
+      const encodedData = contract.interface.encodeFunctionData('addOwnerWithThreshold', [
+        memberData.owner,
+        Number(memberData.threshold),
+      ]);
+      const data = {
+        to: contractAddress,
+        value: 0,
+        data: encodedData,
+        operation: 0,
+        safeTxGas: 0,
+        baseGas: 0,
+        gasPrice: 0,
+        gasToken: ethers.constants.AddressZero,
+        refundReceiver: ethers.constants.AddressZero,
+      };
+      const proposalData = await createProposalData(
+        signer,
 
-    const txHash = await contract.getTransactionHash(
-      to,
-      value,
-      data,
-      operation,
-      safeTxGas,
-      baseGas,
-      gasPrice,
-      gasToken,
-      refundReceiver,
-      nonce,
-    );
-    const proposalData = {
-      proposal: txHash,
-      to,
-      value,
-      data,
-      operation,
-      safeTxGas,
-      baseGas,
-      gasPrice,
-      gasToken,
-      refundReceiver,
-      nonce: nonce.toString(),
-      execute: false,
-      signatures,
-      chain: chain.toString(),
-      abi: ['function addOwnerWithThreshold(address owner, uint256 _threshold) public override'],
-      func: 'addOwnerWithThreshold',
+        contractAddress,
+        data,
+        chain,
+        ['function addOwnerWithThreshold(address owner, uint256 _threshold) public override'],
+        memberData.owner,
+      );
 
-      remark: 'Add member ' + memberData.owner,
-    };
+      const proposals = await loadProposalData();
+      if (!proposals.some((proposal) => proposal.proposal === proposalData.proposal)) {
+        proposals.push(proposalData);
+        //set
+        const proposalRef = ref(database, 'proposals');
+        await set(proposalRef, proposals);
+        console.log('Proposal data saved to proposal_data.json');
+        toast('Proposal created successfully', 'success');
+      } else {
+        console.log('Proposal hash already exists. No new proposal added.');
+        toast(`Proposal hash already exists. No new proposal added.`, 'info');
 
-    const proposals = await loadProposalData();
-    if (!proposals.some((proposal) => proposal.proposal === proposalData.proposal)) {
-      proposals.push(proposalData);
-      //set
-      const proposalRef = ref(database, 'proposals');
-      await set(proposalRef, proposals);
-      console.log('Proposal data saved to proposal_data.json');
-    } else {
-      console.log('Proposal hash already exists. No new proposal added.');
-      setError('Proposal hash already exists. No new proposal added.');
+        return;
+      }
+    } catch (e) {
+      console.log('Error adding member:', e);
+      toast(`Proposal failed to add: ${e}`, 'error');
+    } finally {
+      setLoading(false);
     }
   };
   const removeMember = async () => {
-    let contract = new ethers.Contract(contractAddress, abi, signer);
-
-    const owners = await contract.getOwners();
-    const prevOwnerIndex = owners.indexOf(memberData.owner) - 1;
-
-    const prevOwner = prevOwnerIndex < 0 ? SENITAL_OWNERS : owners[prevOwnerIndex];
-    // const prevOwner = owners[prevOwnerIndex];
-
-    const encodedData = contract.interface.encodeFunctionData('removeOwner', [
-      prevOwner,
-      memberData.owner,
-      memberData.threshold,
-    ]);
-
-    const nonce = await contract.nonce();
-    const to = contractAddress;
-    const value = 0;
-    const data = encodedData;
-    const operation = 0;
-    const safeTxGas = 0;
-    const baseGas = 0;
-    const gasPrice = 0;
-    const gasToken = ethers.constants.AddressZero;
-    const signatures: BytesLike[] = [];
-    const refundReceiver = ethers.constants.AddressZero;
-
-    const txHash = await contract.getTransactionHash(
-      to,
-      value,
-      data,
-      operation,
-      safeTxGas,
-      baseGas,
-      gasPrice,
-      gasToken,
-      refundReceiver,
-      nonce,
-    );
-    const proposalData = {
-      proposal: txHash,
-      to,
-      value,
-      data,
-      operation,
-      safeTxGas,
-      baseGas,
-      gasPrice,
-      gasToken,
-      refundReceiver,
-      nonce: nonce.toString(),
-      execute: false,
-      abi: ['function removeOwner(address prevOwner, address owner, uint256 _threshold) public override'],
-      func: 'removeOwner',
-
-      signatures,
-      chain: chain.toString(),
-      remark: 'Remove member ' + memberData.owner,
-    };
-
-    const proposals = await loadProposalData();
-
-    if (!proposals.some((proposal) => proposal.proposal === txHash)) {
-      proposals.push(proposalData);
-      const proposalRef = ref(database, 'proposals');
-      await set(proposalRef, proposals);
-
-      console.log('added');
-    } else {
-      console.log('Proposal hash already exists. No new proposal added.');
-    }
-  };
-  const callCreateProposal = async () => {
+    setLoading(true);
     try {
       let contract = new ethers.Contract(contractAddress, abi, signer);
 
+      const owners = await contract.getOwners();
+      const prevOwnerIndex = owners.indexOf(memberData.owner) - 1;
+
+      const prevOwner = prevOwnerIndex < 0 ? SENITAL_OWNERS : owners[prevOwnerIndex];
+      // const prevOwner = owners[prevOwnerIndex];
+
+      const encodedData = contract.interface.encodeFunctionData('removeOwner', [
+        prevOwner,
+        memberData.owner,
+        memberData.threshold,
+      ]);
+
+      const data = {
+        to: contractAddress,
+        value: 0,
+        data: encodedData,
+        operation: 0,
+        safeTxGas: 0,
+        baseGas: 0,
+        gasPrice: 0,
+        gasToken: ethers.constants.AddressZero,
+        refundReceiver: ethers.constants.AddressZero,
+      };
+
+      const proposalData = await createProposalData(
+        signer,
+        contractAddress,
+        data,
+        chain,
+        ['function removeOwner(address prevOwner, address owner, uint256 _threshold) public override'],
+        memberData.owner,
+      );
+
+      const proposals = await loadProposalData();
+
+      if (!proposals.some((proposal) => proposal.proposal === proposalData.proposal)) {
+        proposals.push(proposalData);
+        const proposalRef = ref(database, 'proposals');
+        await set(proposalRef, proposals);
+        toast('Proposal created successfully', 'success');
+
+        console.log('added');
+      } else {
+        console.log('Proposal hash already exists. No new proposal added.');
+        // toast(`Proposal hash already exists. No new proposal added.`, 'info');
+        toast(`Proposal hash already exists. No new proposal added.`, 'info');
+
+        return;
+      }
+    } catch (e) {
+      console.log('Error in removing member proposal', e);
+
+      toast(`Proposal failed to add: ${e}`, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+  const callCreateProposal = async () => {
+    setLoading(true);
+    try {
       const proxyAdminInterface = new ethers.utils.Interface([
         'function upgradeAndCall(address proxy, address implementation, bytes data)',
       ]);
@@ -189,56 +167,27 @@ const EVMCreateProposalPage = () => {
 
       console.log('encoded data', encodedData);
 
-      const to = formData.proxyAdminAddress;
-      const value = 0;
-      const data = encodedData;
-      const operation = 0;
-      const safeTxGas = 0;
-      const baseGas = 0;
-      const gasPrice = 0;
-      const gasToken = ethers.constants.AddressZero;
-      const signatures: BytesLike[] = [];
-      const refundReceiver = ethers.constants.AddressZero;
-
-      console.log(contract);
-      const nonce = await contract.nonce();
-      console.log('nonce', nonce);
-      const txHash = await contract.getTransactionHash(
-        to,
-        value,
-        data,
-        operation,
-        safeTxGas,
-        baseGas,
-        gasPrice,
-        gasToken,
-        refundReceiver,
-        nonce,
-      );
-
-      console.log(`Transaction Hash 84: ${txHash}`);
-
-      const proposalData = {
-        proposal: txHash,
-        to,
-        value,
-        data,
-        operation,
-        safeTxGas,
-        baseGas,
-        gasPrice,
-        gasToken,
-        refundReceiver,
-        nonce: nonce.toString(),
-        execute: false,
-        signatures: signatures,
-        chain: chain.toString(),
-        abi: ['function upgradeAndCall(address proxy, address implementation, bytes data)'],
-        func: 'upgradeAndCall',
-
-        remark: formData.remarks,
+      const data = {
+        to: formData.proxyAdminAddress,
+        value: 0,
+        data: encodedData,
+        operation: 0,
+        safeTxGas: 0,
+        baseGas: 0,
+        gasPrice: 0,
+        gasToken: ethers.constants.AddressZero,
+        refundReceiver: ethers.constants.AddressZero,
       };
-
+      //calling contract for proposal txhash and data;
+      const proposalData = await createProposalData(
+        signer,
+        contractAddress,
+        data,
+        chain,
+        ['function upgradeAndCall(address proxy, address implementation, bytes data)'],
+        formData.remarks,
+      );
+      console.log(proposalData, 'proposal daa from service');
       let proposals = await loadProposalData();
       proposals.push(proposalData);
       console.log(proposals);
@@ -246,8 +195,11 @@ const EVMCreateProposalPage = () => {
       await set(proposalRef, proposals);
 
       console.log('added');
+      toast(`Proposal added succesfully`, 'success');
     } catch (e) {
-      console.error('Error adding document: ', e);
+      toast(`Proposal failed to add: ${e}`, 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -270,7 +222,7 @@ const EVMCreateProposalPage = () => {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setLoading(true);
+
     console.log('executing proposal', proposalType, action);
 
     try {
@@ -280,22 +232,15 @@ const EVMCreateProposalPage = () => {
           console.log('calling add member');
 
           addMember();
-          setLoading(false);
         } else {
           console.log('calling remove member');
           removeMember();
-          setLoading(false);
         }
       } else {
         callCreateProposal();
-        setLoading(false);
       }
     } catch (e) {
-      console.log(e, '286');
-      setError(e);
-      setTimeout(() => {
-        setError('');
-      }, 5);
+      console.log(e);
     }
     // console.log('executing proposal', proposalType, action);
   };
@@ -319,9 +264,6 @@ const EVMCreateProposalPage = () => {
     console.log('Contract address:', address);
   }, [chain]);
 
-  useEffect(() => {
-    console.log(error, 'error');
-  }, [error]);
   useEffect(() => {
     console.log(action);
     console.log(proposalType);
@@ -356,6 +298,7 @@ const EVMCreateProposalPage = () => {
                   </label>
                   <div className="flex">
                     <input
+                      required
                       type="text"
                       id="owner"
                       name="owner"
@@ -386,6 +329,7 @@ const EVMCreateProposalPage = () => {
                     New Threshold
                   </label>
                   <input
+                    required
                     name="threshold"
                     value={memberData.threshold}
                     onChange={handleMemberDataChange}
@@ -403,6 +347,7 @@ const EVMCreateProposalPage = () => {
                     Contract Address
                   </label>
                   <input
+                    required
                     type="text"
                     id="proxyAddress"
                     name="proxyAddress"
@@ -417,6 +362,7 @@ const EVMCreateProposalPage = () => {
                     Proxy Admin Address
                   </label>
                   <input
+                    required
                     type="text"
                     id="proxyAdminAddress"
                     name="proxyAdminAddress"
@@ -431,6 +377,7 @@ const EVMCreateProposalPage = () => {
                     Implementation Address
                   </label>
                   <input
+                    required
                     type="text"
                     id="implementationAddress"
                     name="implementationAddress"
@@ -445,6 +392,7 @@ const EVMCreateProposalPage = () => {
                     Remarks
                   </label>
                   <input
+                    required
                     type="text"
                     id="remarks"
                     name="remarks"
@@ -456,22 +404,18 @@ const EVMCreateProposalPage = () => {
                 </div>
               </>
             )}
-            <div className="flex justify-end">
-              <button type="submit" className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-500">
-                Submit Proposal
-              </button>
-              {loading ? <SpinningCircles fill="black" className="w-10 h-10 inline pl-3" /> : ''}
+            <div className="flex flex-row gap-1">
+              <div className="flex justify-end">
+                <button type="submit" className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-500">
+                  Submit Proposal
+                </button>
+              </div>
+              {loading ? <SpinningCircles fill="black" className="w-96 h-[25px] font-extra-light  pl-3" /> : ''}
             </div>
           </form>
-          {error ? (
-            <p className="w-fit h-10 p-3 border border-red-700 bg-red-500 text-white text-l fixed top-32 right-4">
-              {error}
-            </p>
-          ) : (
-            ''
-          )}
         </div>
       </div>
+      <ToastContainer />
     </>
   );
 };

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useEthersSigner } from '../../utils/ethers';
 import { BytesLike, ethers } from 'ethers';
 import { abi } from '../../abi/SAFE_ABI';
+import useToast from '../../hooks/useToast';
 import { testconfig, mainconfig } from '../../config';
 import { getEthereumContractByChain } from '../../constants/contracts';
 import { getChainId } from '@wagmi/core';
@@ -12,15 +13,37 @@ import Modal from '../../Modals/Modal.tsx';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
+import { evmApproveContractCall } from '../../services/evmServices.ts';
+
+type Proposal = {
+  proposal: string;
+  to: string;
+  value: number;
+  data: string;
+  operation: number;
+  baseGas: number;
+  gasPrice: number;
+  gasToken: string;
+  safeTxGas: number;
+  refundReceiver: string;
+  nonce: bigint;
+  execute: boolean;
+  abi: [];
+  signatures: Array<BytesLike>;
+  chain: string;
+  remark: string;
+};
 
 const EVMApproveProposalsPage = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [loading, setLoading] = useState(false);
+
+  const { toast, ToastContainer } = useToast();
   const [open, setOpen] = useState(false);
   const signer = useEthersSigner();
   const chainId = getChainId(config); // account, chainid, metamask
   const [proposal_data, setProposalData] = useState<any[]>([]);
-  const [error, setError] = useState('');
+
   const contractAddress = getEthereumContractByChain(chainId.toString());
   const [thres, setThresh] = useState<number>(0);
   const buttonName = 'Approve Proposal';
@@ -53,44 +76,20 @@ const EVMApproveProposalsPage = () => {
     return ethers.utils.hexConcat([r, s, ethers.utils.hexlify(v)]);
   }
 
-  type Proposal = {
-    proposal: String;
-    to: String;
-    value: Number;
-    data: String;
-    operation: Number;
-    baseGas: Number;
-    gasPrice: Number;
-    gasToken: String;
-    safeTxGas: Number;
-    refundReceiver: String;
-    nonce: BigInt;
-    execute: Boolean;
-    signatures: Array<BytesLike>;
-    chain: string;
-    remark: String;
-  };
-
-  const handleApprove = async (hash: string | Proposal) => {
+  const handleApprove = async (hash: Proposal | string) => {
     setLoading(true);
     if (!signer) {
       console.error('Signer is undefined. Check initialization.');
-      setError('Connect wallet first');
-
-      setTimeout(() => {
-        setError('');
-      }, 4000);
+      toast(`No signer: Connect wallet properly `, 'error');
       setLoading(false);
       return;
     }
 
     console.log('Signer:', signer);
 
-    let contract = new ethers.Contract(contractAddress, abi, signer);
     try {
-      const tx = await contract.approveHash(hash);
-      await tx.wait();
-      console.log('Transaction confirmed:', tx.hash);
+      const txhash: any = await evmApproveContractCall(signer, contractAddress, hash);
+
       let owners = await contract.getOwners();
       console.log(owners);
       console.log(await contract.getThreshold());
@@ -103,6 +102,7 @@ const EVMApproveProposalsPage = () => {
       const proposal = proposals.find((p) => p.proposal === hash);
       if (!proposal) {
         console.error(`Proposal with hash ${hash} not found.`);
+        toast(`Proposal hash not found`, 'error');
         process.exit(1);
       }
 
@@ -110,6 +110,11 @@ const EVMApproveProposalsPage = () => {
         proposal.signatures = [];
       }
       console.log('Found proposal', proposal);
+      //change the status of proposal
+      if (proposal.signatures.length >= thres) {
+        proposal.status = 'Passed';
+      }
+      console.log('Changed status after approve with no of signatures', proposal.signatures.length, proposal.status);
       proposal.signatures.push(signature);
       console.log(proposal.signatures);
       proposal.signatures = owners
@@ -122,15 +127,19 @@ const EVMApproveProposalsPage = () => {
       console.log(proposals, 'proposalsss');
 
       const proposalRef = ref(database, 'proposals');
-      await set(proposalRef, proposals);
+
+      const tx = await set(proposalRef, proposals);
 
       console.log('Updated proposals saved to Firebase.');
       //data after update
       const latest = await loadProposalData();
       console.log('data afte r update', latest);
+      toast(`Proposal approved successfully`, 'success');
+
       setLoading(false);
     } catch (error) {
       console.error('Error:', error);
+      toast(`Error:${error}`, 'error');
       setLoading(false);
     }
   };
@@ -166,7 +175,7 @@ const EVMApproveProposalsPage = () => {
 
   return (
     <div className="evm-manager-page">
-      {loading ? <SpinningCircles fill="black" className="w-10 h-10 inline pl-3 absolute top-2" /> : ''}
+      {loading ? <SpinningCircles fill="blue" className="w-16 h-10 inline pl-3 fixed top-20 left-[220px]" /> : ''}
       {!open ? (
         <div className="overflow-x-auto">
           <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
@@ -186,10 +195,7 @@ const EVMApproveProposalsPage = () => {
                     <td className=" ">{proposal.proposal}</td>
 
                     <td className="w-96">{proposal.remark}</td>
-                    <td>
-                      {' '}
-                      {proposal.signatures ? (proposal.signatures.length === thres ? 'Passed' : 'Open') : 'Open'}
-                    </td>
+                    <td> {proposal.status}</td>
                     <td>
                       <button
                         className="d-btn"
@@ -228,9 +234,7 @@ const EVMApproveProposalsPage = () => {
           buttonName={buttonName}
         />
       )}
-      {error && (
-        <p className="text-white bg-red-500 border border-red-600 fixed top-32 right-1 w-fit p-2 h-10">{error}</p>
-      )}
+      <ToastContainer />
     </div>
   );
 };

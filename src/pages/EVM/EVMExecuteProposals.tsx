@@ -5,6 +5,7 @@ import { abi } from '../../abi/SAFE_ABI';
 import { testconfig, mainconfig } from '../../config';
 import { getEthereumContractByChain } from '../../constants/contracts';
 import { getChainId } from '@wagmi/core';
+import { evmExecuteContractCall } from '../../services/evmServices.ts';
 import { loadProposalData } from '../../utils/loadproposaldata';
 import Modal from '../../Modals/Modal.tsx';
 
@@ -39,6 +40,7 @@ const EVMExecuteProposals = () => {
     execute: boolean;
     signatures: Array<BytesLike>;
     chain: string;
+    status: string;
     remark: string;
   };
   const handleClose = () => {
@@ -50,44 +52,11 @@ const EVMExecuteProposals = () => {
   };
 
   const handleExecute = async (proposal: Proposal) => {
-    if (!signer) {
-      console.error('Signer is undefined. Check initialization.');
-      setError('Connect wallet first');
-
-      setTimeout(() => {
-        setError('');
-      }, 4000);
-      return;
-    }
-
-    console.log('Signer:', signer);
-
-    let contract = new ethers.Contract(contractAddress, abi, signer);
-    console.log(contract);
     try {
-      console.log(proposal.signatures, 'proposal signatures');
-      const encodedSignatures = ethers.utils.hexConcat(proposal.signatures);
-      console.log('encoded sig', encodedSignatures);
-
-      const tx = await contract.executeTransaction(
-        proposal.to,
-        proposal.value,
-        proposal.data,
-        proposal.operation,
-        proposal.safeTxGas,
-        proposal.baseGas,
-        proposal.gasPrice,
-        proposal.gasToken,
-        proposal.refundReceiver,
-        encodedSignatures,
-        proposal.remark,
-      );
-
-      await tx.wait();
-
-      console.log(`Transaction executed with hash ${proposal.proposal}. ,$`);
+      //calling contract
+      await evmExecuteContractCall(signer, contractAddress, proposal);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error in calling contract:', error);
     }
   };
 
@@ -98,18 +67,22 @@ const EVMExecuteProposals = () => {
   }, [chainId]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchFilteredData = async () => {
       try {
         const data = await loadProposalData();
         console.log('Fetched proposal data:', data);
-        setProposalData(data);
+
+        // Filter proposals with status "Passed"
+        const filteredData = data.filter((proposal: any) => proposal.status === 'Passed');
+
+        setProposalData(filteredData);
       } catch (error) {
         console.error('Error fetching proposal data:', error);
       }
     };
-
-    fetchData();
+    fetchFilteredData();
   }, []);
+
   useEffect(() => {
     const getThreshold = async () => {
       let temp = await contract.getThreshold();
@@ -118,58 +91,45 @@ const EVMExecuteProposals = () => {
     };
     getThreshold();
   });
+
   return (
     <div className="evm-manager-page">
-      {/* {loading ? <SpinningCircles fill="black" className="w-10 h-10 inline pl-3 absolute top-2" /> : ''} */}
       {!open ? (
         <div className="overflow-x-auto">
-          <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
-            <thead>
-              <tr>
-                <th>Proposal Hash</th>
-                <th className="w-96">Title </th>
-                <th>Status</th>
-                <th>Action</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {proposal_data.length > 0 ? (
-                proposal_data.map((proposal, index) => (
-                  <tr key={index} className="">
-                    <td className=" ">{proposal.proposal}</td>
-
+          {proposal_data.length > 0 ? (
+            <table className="d-table rounded bg-[rgba(255,255,255,0.1)] mt-6">
+              <thead>
+                <tr>
+                  <th>Proposal Hash</th>
+                  <th className="w-96">Title</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {proposal_data.map((proposal, index) => (
+                  <tr key={index}>
+                    <td>{proposal.proposal}</td>
                     <td className="w-96">{proposal.remark}</td>
+                    <td>{proposal.status}</td>
                     <td>
-                      {' '}
-                      {proposal.signatures ? (proposal.signatures.length === thres ? 'Passed' : 'Open') : 'Open'}
-                    </td>
-                    <td>
-                      <button
-                        className="d-btn"
-                        onClick={() => {
-                          handleExecute(proposal);
-                        }}
-                      >
+                      <button className="d-btn" onClick={() => handleExecute(proposal)}>
                         Execute proposal
                       </button>
                     </td>
                     <td>
-                      {/* <Link to={`/evm/proposals/${proposal.proposal}`} state={{ proposal }}> */}
                       <button className="d-btn" onClick={() => handleOpen(proposal)}>
                         Details
-                      </button>{' '}
-                      {/* </Link> */}
+                      </button>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td className="text-center">No proposals</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-center">No Approved proposals to execute</p>
+          )}
         </div>
       ) : (
         <Modal
