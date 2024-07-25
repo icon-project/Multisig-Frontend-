@@ -362,7 +362,7 @@ const EVMCreateProposalPage = () => {
                       value={memberData.owner}
                       onChange={handleMemberDataChange}
                       placeholder="Enter member address"
-                      className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
+                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     />
                   </div>
                 </div>
@@ -390,7 +390,7 @@ const EVMCreateProposalPage = () => {
                     value={memberData.threshold}
                     onChange={handleMemberDataChange}
                     placeholder="Enter new threshold"
-                    className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                   />
                 </div>
               </>
@@ -406,7 +406,7 @@ const EVMCreateProposalPage = () => {
                     type="text"
                     id="proxyAddress"
                     name="proxyAddress"
-                    className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={formData.proxyAddress}
                     onChange={handleChange}
                     placeholder="Proxy Address"
@@ -420,7 +420,7 @@ const EVMCreateProposalPage = () => {
                     type="text"
                     id="proxyAdminAddress"
                     name="proxyAdminAddress"
-                    className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={formData.proxyAdminAddress}
                     onChange={handleChange}
                     placeholder="Proxy Admin Address"
@@ -434,7 +434,7 @@ const EVMCreateProposalPage = () => {
                     type="text"
                     id="implementationAddress"
                     name="implementationAddress"
-                    className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={formData.implementationAddress}
                     onChange={handleChange}
                     placeholder="Implementation Address"
@@ -448,7 +448,7 @@ const EVMCreateProposalPage = () => {
                     type="text"
                     id="remarks"
                     name="remarks"
-                    className="bg-gray-200 p-2 rounded hover:outline-none focus:outline-none"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={formData.remarks}
                     onChange={handleChange}
                     placeholder="Enter remarks"
