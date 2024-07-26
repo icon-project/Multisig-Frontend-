@@ -18,6 +18,8 @@ const EVMCreateProposalPage = () => {
   const { toast, ToastContainer } = useToast();
   const SENITAL_OWNERS = '0x0000000000000000000000000000000000000001';
   const [loading, setLoading] = useState(false);
+  const [owner, setOwner] = useState<any>(null);
+  const [thres, setThresh] = useState<number>(0);
 
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [formData, setFormData] = useState({
@@ -30,7 +32,8 @@ const EVMCreateProposalPage = () => {
     owner: '',
     threshold: '',
   });
-
+  const [showOwner, setShowOwner] = useState(false);
+  const [showThresh, setShowThres] = useState(false);
   const [proposalType, setProposalType] = useState('member-management');
 
   const chainId = getChainId(config);
@@ -91,15 +94,34 @@ const EVMCreateProposalPage = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    const getOwners = async () => {
+      let contract = new ethers.Contract(contractAddress, abi, signer);
+
+      const owners = await contract.getOwners();
+      setOwner(owners);
+    };
+    getOwners();
+  }, [contractAddress]);
+
+  useEffect(() => {
+    const getThreshold = async () => {
+      let contract = new ethers.Contract(contractAddress, abi, signer);
+
+      let temp = await contract.getThreshold();
+      setThresh(Number(temp));
+      console.log(thres, 'thres');
+    };
+    getThreshold();
+  });
+
   const removeMember = async () => {
     setLoading(true);
     try {
       let contract = new ethers.Contract(contractAddress, abi, signer);
+      const prevOwnerIndex = owner.indexOf(memberData.owner) - 1;
 
-      const owners = await contract.getOwners();
-      const prevOwnerIndex = owners.indexOf(memberData.owner) - 1;
-
-      const prevOwner = prevOwnerIndex < 0 ? SENITAL_OWNERS : owners[prevOwnerIndex];
+      const prevOwner = prevOwnerIndex < 0 ? SENITAL_OWNERS : owner[prevOwnerIndex];
       // const prevOwner = owners[prevOwnerIndex];
 
       const encodedData = contract.interface.encodeFunctionData('removeOwner', [
@@ -220,6 +242,14 @@ const EVMCreateProposalPage = () => {
     }));
   };
 
+  const handleShowThres = () => {
+    setShowThres((prev) => !prev);
+  };
+  const handleShowOwners = () => {
+    setShowOwner((prev) => !prev);
+    console.log(owner);
+  };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -289,11 +319,36 @@ const EVMCreateProposalPage = () => {
                 <option value="contract-upgrade">Contract Upgrade</option>
               </select>
             </div>
+
             <hr />
             {proposalType === 'member-management' && (
               <>
+                <span className="font-extralight text-gray-400 text-xs ">Click to get current values</span>
+
+                <div className="flex flex-row gap-8">
+                  <div className="mb-2  ">
+                    <button type="button" onClick={handleShowOwners} className=" p-2 outline outline-blue-300 rounded">
+                      Current Owners
+                    </button>
+                    {showOwner === true &&
+                      owner.map((item: any, index: number) => (
+                        <div className="w-[50%]">
+                          <p className="font-extralight text-xs text-gray-400" key={index}>
+                            {item}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                  <div className="">
+                    <button type="button" onClick={handleShowThres} className="p-2 outline outline-blue-300 rounded">
+                      Current Threshold
+                      {showThresh === true ? <span className="  text-gray-400 pl-2">{thres}</span> : ''}
+                    </button>
+                  </div>
+                </div>
+
                 <div className="mb-4">
-                  <label htmlFor="owner" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="owner" className=" text-sm font-medium text-gray-700">
                     Member Address
                   </label>
                   <div className="flex">
