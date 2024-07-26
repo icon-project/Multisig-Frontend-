@@ -10,7 +10,6 @@ import { getChainId } from '@wagmi/core';
 import { database } from '../../firebase';
 import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
-import Modal from '../../Modals/Modal.tsx';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
@@ -40,28 +39,16 @@ const EVMApproveProposalsPage = () => {
   const [loading, setLoading] = useState(false);
 
   const { toast, ToastContainer } = useToast();
-  const [open, setOpen] = useState(false);
   const signer = useEthersSigner();
   const chainId = getChainId(config); // account, chainid, metamask
   const [proposal_data, setProposalData] = useState<any[]>([]);
 
   const contractAddress = getEthereumContractByChain(chainId.toString());
   const [thres, setThresh] = useState<number>(0);
-  const buttonName = 'Approve Proposal';
-
-  const [selectedProposal, setSelectedProposal] = useState<any>(null);
 
   console.log('Chain id and contract address and signer ', chainId, contractAddress, signer?._address);
 
   let contract = new ethers.Contract(contractAddress, abi, signer);
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-  const handleOpen = (proposal: any) => {
-    setSelectedProposal(proposal);
-    setOpen(true);
-  };
 
   useEffect(() => {
     console.log(open);
@@ -89,7 +76,7 @@ const EVMApproveProposalsPage = () => {
     console.log('Signer:', signer);
 
     try {
-      const txhash: any = await evmApproveContractCall(signer, contractAddress, hash);
+      await evmApproveContractCall(signer, contractAddress, hash);
 
       let owners = await contract.getOwners();
       console.log(owners);
@@ -112,24 +99,27 @@ const EVMApproveProposalsPage = () => {
       }
       console.log('Found proposal', proposal);
       //change the status of proposal
+
+      console.log('Changed status after approve with no of signatures', proposal.signatures.length, proposal.status);
+      proposal.signatures.push(signature);
       if (proposal.signatures.length >= thres) {
         proposal.status = 'Passed';
       }
-      console.log('Changed status after approve with no of signatures', proposal.signatures.length, proposal.status);
-      proposal.signatures.push(signature);
+
       console.log(proposal.signatures);
       proposal.signatures = owners
         .map((owner: string) => owner.slice(2).toLowerCase())
         .reverse()
         .map((owner: string) => proposal.signatures.find((sig: any) => sig.includes(owner)))
         .filter((sig: any) => sig !== undefined);
+
       console.log(proposal.signatures, 'propo');
 
       console.log(proposals, 'proposalsss');
 
       const proposalRef = ref(database, 'proposals');
 
-      const tx = await set(proposalRef, proposals);
+      await set(proposalRef, proposals);
 
       console.log('Updated proposals saved to Firebase.');
       //data after update
@@ -177,61 +167,51 @@ const EVMApproveProposalsPage = () => {
   return (
     <div className="evm-manager-page">
       {loading ? <SpinningCircles fill="blue" className="w-16 h-10 inline pl-3 fixed top-20 left-[220px]" /> : ''}
-      {!open ? (
-        <div className="overflow-x-auto">
-          <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
-            <thead>
-              <tr>
-                <th>Proposal Hash</th>
-                <th className="w-6">Title </th>
-                <th>Status</th>
-                <th>Action</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {proposal_data.length > 0 ? (
-                proposal_data.map((proposal, index) => (
-                  <tr key={index} className="">
-                    <td className=" ">{proposal.proposal}</td>
+      <div className="overflow-x-auto">
+        <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
+          <thead>
+            <tr>
+              <th>Proposal Hash</th>
+              <th className="w-6">Title </th>
+              <th>Status</th>
+              <th>Action</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {proposal_data.length > 0 ? (
+              proposal_data.map((proposal, index) => (
+                <tr key={index} className="">
+                  <td className=" ">{proposal.proposal}</td>
 
-                    <td className="w-96">{proposal.remark}</td>
-                    <td> {proposal.status}</td>
-                    <td>
-                      <button
-                        className="d-btn"
-                        onClick={() => {
-                          handleApprove(proposal.proposal);
-                        }}
-                      >
-                        Approve proposal
-                      </button>
-                    </td>
-                    <td>
-                      <Link to={`/evm/proposals/${proposal.proposal}`}>
-                        <button className="d-btn">Details</button>
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td className="text-center">No proposals</td>
+                  <td className="w-96">{proposal.remark}</td>
+                  <td> {proposal.status}</td>
+                  <td>
+                    <button
+                      className="d-btn"
+                      onClick={() => {
+                        handleApprove(proposal.proposal);
+                      }}
+                    >
+                      Approve proposal
+                    </button>
+                  </td>
+                  <td>
+                    <Link to={`/evm/proposals/${proposal.proposal}`}>
+                      <button className="d-btn">Details</button>
+                    </Link>
+                  </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <Modal
-          isOpen={open}
-          onClose={handleClose}
-          handleApprove={handleApprove}
-          thres={thres}
-          proposal={selectedProposal}
-          buttonName={buttonName}
-        />
-      )}
+              ))
+            ) : (
+              <tr>
+                <td className="text-center">No proposals</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      )
       <ToastContainer />
     </div>
   );

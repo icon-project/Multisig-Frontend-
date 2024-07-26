@@ -79,6 +79,7 @@ export const evmExecuteContractCall = async (signer: any, contractAddress: strin
     const contract = new ethers.Contract(contractAddress, abi, signer);
 
     const encodedSignatures = ethers.utils.hexConcat(proposal.signatures);
+    console.log('Encoded sig', encodedSignatures);
 
     const tx = await contract.executeTransaction(
       proposal.to,
