@@ -1,22 +1,27 @@
+import { BytesLike } from 'ethers';
 import { database } from '../firebase';
 import { ref, get, child } from 'firebase/database';
 
-interface Proposal {
-  proposal: String;
-  to: String;
+type Proposal = {
+  status: string;
+  proposal: string;
+  to: string;
   value: Number;
-  data: String;
+  data: string;
   operation: Number;
+  safeTxGas: Number;
   baseGas: Number;
   gasPrice: Number;
-  gasToken: String;
-  refundReceiver: String;
+  gasToken: string;
+  refundReceiver: string;
   nonce: BigInt;
   execute: Boolean;
-  signatures: Array<Number>;
+  signatures: BytesLike[];
+
   chain: string;
-  remark: String;
-}
+
+  remark: string;
+};
 
 export async function loadProposalData(): Promise<Proposal[]> {
   try {

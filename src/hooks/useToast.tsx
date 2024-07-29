@@ -27,12 +27,22 @@ const useToast = () => {
     }, timeout);
   };
 
+  const removeToast = (id: string) => {
+    setToasts((prevToasts) => prevToasts.filter((t) => t.id !== id));
+  };
+
   const ToastComponent: React.FC<{ toast: Toast }> = ({ toast }) => {
     const bgColor = typeColor[toast.type];
     return (
-      <div className="toast">
-        <div className={`d-alert ${bgColor} w-full max-w-[600px] text-wrap text-white`}>
+      <div className="toast ">
+        <div className={`d-alert ${bgColor} w-full max-w-[600px] text-wrap  text-white`}>
           <p>{toast.message}</p>
+          <button
+            className="text-sm font-extralight text-white  absolute right-1  w-5 h-6"
+            onClick={() => removeToast(toast.id)}
+          >
+            X
+          </button>
         </div>
       </div>
     );
