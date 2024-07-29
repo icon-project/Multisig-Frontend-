@@ -2,46 +2,52 @@ import { useState, useEffect } from 'react';
 import { useEthersSigner } from '../../utils/ethers';
 import { BytesLike, ethers } from 'ethers';
 import { abi } from '../../abi/SAFE_ABI';
+import { Link } from 'react-router-dom';
+import useToast from '../../hooks/useToast';
 import { testconfig, mainconfig } from '../../config';
 import { getEthereumContractByChain } from '../../constants/contracts';
 import { getChainId } from '@wagmi/core';
 import { database } from '../../firebase';
 import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
-import Modal from '../../Modals/Modal.tsx';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
+import { evmApproveContractCall } from '../../services/evmServices.ts';
+
+type Proposal = {
+  status: string;
+  proposal: string;
+  to: string;
+  value: Number;
+  data: string;
+  operation: Number;
+  safeTxGas: Number;
+  baseGas: Number;
+  gasPrice: Number;
+  gasToken: string;
+  refundReceiver: string;
+  nonce: BigInt;
+  execute: Boolean;
+  signatures: BytesLike[];
+
+  chain: string;
+
+  remark: string;
+};
 
 const EVMApproveProposalsPage = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+
+  const { toast, ToastContainer } = useToast();
   const signer = useEthersSigner();
-  const chainId = getChainId(config); // account, chainid, metamask
-  const [proposal_data, setProposalData] = useState<any[]>([]);
-  const [error, setError] = useState('');
-  const contractAddress = getEthereumContractByChain(chainId.toString());
+  const [chainId, setChainId] = useState<Number>(0);
+  const [contractAddress, setContractAddress] = useState<string>('');
+  const [proposal_data, setProposalData] = useState<Proposal[]>([]);
   const [thres, setThresh] = useState<number>(0);
-  const buttonName = 'Approve Proposal';
+  const [owner, setOwner] = useState<string[]>([]);
 
-  const [selectedProposal, setSelectedProposal] = useState<any>(null);
-
-  console.log('Chain id and contract address and signer ', chainId, contractAddress, signer?._address);
-
-  let contract = new ethers.Contract(contractAddress, abi, signer);
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-  const handleOpen = (proposal: any) => {
-    setSelectedProposal(proposal);
-    setOpen(true);
-  };
-
-  useEffect(() => {
-    console.log(open);
-  }, [open]);
   function generateSignature() {
     if (!signer || !signer._address) {
       throw new Error('Signer address is not available');
@@ -53,47 +59,20 @@ const EVMApproveProposalsPage = () => {
     return ethers.utils.hexConcat([r, s, ethers.utils.hexlify(v)]);
   }
 
-  type Proposal = {
-    proposal: String;
-    to: String;
-    value: Number;
-    data: String;
-    operation: Number;
-    baseGas: Number;
-    gasPrice: Number;
-    gasToken: String;
-    safeTxGas: Number;
-    refundReceiver: String;
-    nonce: BigInt;
-    execute: Boolean;
-    signatures: Array<BytesLike>;
-    chain: string;
-    remark: String;
-  };
-
-  const handleApprove = async (hash: string | Proposal) => {
+  const handleApprove = async (hash: string) => {
     setLoading(true);
     if (!signer) {
       console.error('Signer is undefined. Check initialization.');
-      setError('Connect wallet first');
-
-      setTimeout(() => {
-        setError('');
-      }, 4000);
+      toast(`No signer: Connect wallet properly `, 'error');
       setLoading(false);
       return;
     }
 
     console.log('Signer:', signer);
 
-    let contract = new ethers.Contract(contractAddress, abi, signer);
     try {
-      const tx = await contract.approveHash(hash);
-      await tx.wait();
-      console.log('Transaction confirmed:', tx.hash);
-      let owners = await contract.getOwners();
-      console.log(owners);
-      console.log(await contract.getThreshold());
+      await evmApproveContractCall(signer, contractAddress, hash);
+
       const signature = generateSignature();
 
       console.log(`Hash ${hash} approved.`);
@@ -103,6 +82,7 @@ const EVMApproveProposalsPage = () => {
       const proposal = proposals.find((p) => p.proposal === hash);
       if (!proposal) {
         console.error(`Proposal with hash ${hash} not found.`);
+        toast(`Proposal hash not found`, 'error');
         process.exit(1);
       }
 
@@ -110,39 +90,85 @@ const EVMApproveProposalsPage = () => {
         proposal.signatures = [];
       }
       console.log('Found proposal', proposal);
+      //change the status of proposal
+
+      console.log('Changed status after approve with no of signatures', proposal.signatures.length, proposal.status);
       proposal.signatures.push(signature);
+      if (proposal.signatures.length >= thres) {
+        proposal.status = 'Passed';
+      }
+
       console.log(proposal.signatures);
-      proposal.signatures = owners
+      proposal.signatures = owner
         .map((owner: string) => owner.slice(2).toLowerCase())
         .reverse()
-        .map((owner: string) => proposal.signatures.find((sig: any) => sig.includes(owner)))
-        .filter((sig: any) => sig !== undefined);
+        .map((owner: string) => {
+          return proposal.signatures.find((sig: BytesLike) => {
+            const sigHex = ethers.utils.hexlify(sig).toLowerCase();
+            return sigHex.includes(owner);
+          });
+        })
+        .filter((sig: BytesLike | undefined): sig is BytesLike => sig !== undefined);
+
       console.log(proposal.signatures, 'propo');
 
       console.log(proposals, 'proposalsss');
 
       const proposalRef = ref(database, 'proposals');
+
       await set(proposalRef, proposals);
 
       console.log('Updated proposals saved to Firebase.');
       //data after update
       const latest = await loadProposalData();
       console.log('data afte r update', latest);
+      toast(`Proposal approved successfully`, 'success');
+
       setLoading(false);
+      fetchData();
     } catch (error) {
       console.error('Error:', error);
+      toast(`Error:${error}`, 'error');
       setLoading(false);
+    }
+  };
+  const fetchData = async () => {
+    try {
+      const data = await loadProposalData();
+      if (chainId === 0) {
+        setProposalData(data);
+      } else {
+        const filteredByChain = data.filter((p) => p.chain === chainId.toString());
+        setProposalData(filteredByChain);
+      }
+    } catch (error) {
+      console.error('Error fetching proposal data:', error);
     }
   };
 
   useEffect(() => {
-    const getThreshold = async () => {
+    if (signer) {
+      let chain: Number = getChainId(config);
+      const contractAddress = getEthereumContractByChain(chain.toString());
+
+      setChainId(chain);
+      setContractAddress(contractAddress);
+
+      console.log(chain, contractAddress);
+    }
+  }, [signer, config]);
+
+  useEffect(() => {
+    const getThresholdAndOwners = async () => {
+      let contract = new ethers.Contract(contractAddress, abi, signer);
       let temp = await contract.getThreshold();
+      let owners = await contract.getOwners();
+      setOwner(owners);
       setThresh(Number(temp));
-      console.log(thres, 'thres');
+      console.log(thres, owner, 'thres and owner');
     };
-    getThreshold();
-  });
+    getThresholdAndOwners();
+  }, [thres, owner]);
 
   useEffect(() => {
     console.log('Current chain ID:', chainId);
@@ -151,86 +177,58 @@ const EVMApproveProposalsPage = () => {
   }, [chainId]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await loadProposalData();
-        console.log('Fetched proposal data:', data);
-        setProposalData(data);
-      } catch (error) {
-        console.error('Error fetching proposal data:', error);
-      }
-    };
-
     fetchData();
-  }, []);
+  }, [chainId]);
 
   return (
     <div className="evm-manager-page">
-      {loading ? <SpinningCircles fill="black" className="w-10 h-10 inline pl-3 absolute top-2" /> : ''}
-      {!open ? (
-        <div className="overflow-x-auto">
-          <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
-            <thead>
-              <tr>
-                <th>Proposal Hash</th>
-                <th className="w-6">Title </th>
-                <th>Status</th>
-                <th>Action</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {proposal_data.length > 0 ? (
-                proposal_data.map((proposal, index) => (
-                  <tr key={index} className="">
-                    <td className=" ">{proposal.proposal}</td>
+      {loading ? <SpinningCircles fill="blue" className="w-16 h-10 inline pl-3 fixed top-20 left-[220px]" /> : ''}
+      <div className="overflow-x-auto">
+        <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
+          <thead>
+            <tr>
+              <th>Proposal Hash</th>
+              <th className="w-6">Title </th>
+              <th>Status</th>
+              <th>Action</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {proposal_data.length > 0 ? (
+              proposal_data.map((proposal, index) => (
+                <tr key={index} className="">
+                  <td className=" ">{proposal.proposal}</td>
 
-                    <td className="w-96">{proposal.remark}</td>
-                    <td>
-                      {' '}
-                      {proposal.signatures ? (proposal.signatures.length === thres ? 'Passed' : 'Open') : 'Open'}
-                    </td>
-                    <td>
-                      <button
-                        className="d-btn"
-                        onClick={() => {
-                          handleApprove(proposal.proposal);
-                        }}
-                      >
-                        Approve proposal
-                      </button>
-                    </td>
-                    <td>
-                      {/* <Link to={`/evm/proposals/${proposal.proposal}`} state={{ proposal, thres, contract }}> */}
-                      <button className="d-btn" onClick={() => handleOpen(proposal)}>
-                        Details
-                      </button>
-
-                      {/* </Link> */}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td className="text-center">No proposals</td>
+                  <td className="w-96">{proposal.remark}</td>
+                  <td> {proposal.status}</td>
+                  <td>
+                    <button
+                      className="d-btn"
+                      onClick={() => {
+                        handleApprove(proposal.proposal);
+                      }}
+                    >
+                      Approve proposal
+                    </button>
+                  </td>
+                  <td>
+                    <Link to={`/evm/proposals/${proposal.proposal}`}>
+                      <button className="d-btn">Details</button>
+                    </Link>
+                  </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <Modal
-          isOpen={open}
-          onClose={handleClose}
-          handleApprove={handleApprove}
-          thres={thres}
-          proposal={selectedProposal}
-          buttonName={buttonName}
-        />
-      )}
-      {error && (
-        <p className="text-white bg-red-500 border border-red-600 fixed top-32 right-1 w-fit p-2 h-10">{error}</p>
-      )}
+              ))
+            ) : (
+              <tr>
+                <td className="text-center">No proposals</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <ToastContainer />
     </div>
   );
 };
