@@ -64,6 +64,7 @@ export const createProposalData = async (
       abi: functionAbi,
 
       remark: remark,
+      chainId: chain,
     };
     return proposalData;
   } catch (e) {

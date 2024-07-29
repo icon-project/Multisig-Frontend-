@@ -16,21 +16,23 @@ import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-ci
 import { evmApproveContractCall } from '../../services/evmServices.ts';
 
 type Proposal = {
+  status: string;
   proposal: string;
   to: string;
-  value: number;
+  value: Number;
   data: string;
-  operation: number;
-  baseGas: number;
-  gasPrice: number;
+  operation: Number;
+  safeTxGas: Number;
+  baseGas: Number;
+  gasPrice: Number;
   gasToken: string;
-  safeTxGas: number;
   refundReceiver: string;
-  nonce: bigint;
-  execute: boolean;
-  abi: [];
-  signatures: Array<BytesLike>;
+  nonce: BigInt;
+  execute: Boolean;
+  signatures: BytesLike[];
+
   chain: string;
+
   remark: string;
 };
 
@@ -40,19 +42,12 @@ const EVMApproveProposalsPage = () => {
 
   const { toast, ToastContainer } = useToast();
   const signer = useEthersSigner();
-  const chainId = getChainId(config); // account, chainid, metamask
-  const [proposal_data, setProposalData] = useState<any[]>([]);
-
-  const contractAddress = getEthereumContractByChain(chainId.toString());
+  const [chainId, setChainId] = useState<Number>(0);
+  const [contractAddress, setContractAddress] = useState<string>('');
+  const [proposal_data, setProposalData] = useState<Proposal[]>([]);
   const [thres, setThresh] = useState<number>(0);
+  const [owner, setOwner] = useState('');
 
-  console.log('Chain id and contract address and signer ', chainId, contractAddress, signer?._address);
-
-  let contract = new ethers.Contract(contractAddress, abi, signer);
-
-  useEffect(() => {
-    console.log(open);
-  }, [open]);
   function generateSignature() {
     if (!signer || !signer._address) {
       throw new Error('Signer address is not available');
@@ -64,7 +59,7 @@ const EVMApproveProposalsPage = () => {
     return ethers.utils.hexConcat([r, s, ethers.utils.hexlify(v)]);
   }
 
-  const handleApprove = async (hash: Proposal | string) => {
+  const handleApprove = async (hash: string) => {
     setLoading(true);
     if (!signer) {
       console.error('Signer is undefined. Check initialization.');
@@ -78,9 +73,6 @@ const EVMApproveProposalsPage = () => {
     try {
       await evmApproveContractCall(signer, contractAddress, hash);
 
-      let owners = await contract.getOwners();
-      console.log(owners);
-      console.log(await contract.getThreshold());
       const signature = generateSignature();
 
       console.log(`Hash ${hash} approved.`);
@@ -107,7 +99,7 @@ const EVMApproveProposalsPage = () => {
       }
 
       console.log(proposal.signatures);
-      proposal.signatures = owners
+      proposal.signatures = owner
         .map((owner: string) => owner.slice(2).toLowerCase())
         .reverse()
         .map((owner: string) => proposal.signatures.find((sig: any) => sig.includes(owner)))
@@ -128,21 +120,50 @@ const EVMApproveProposalsPage = () => {
       toast(`Proposal approved successfully`, 'success');
 
       setLoading(false);
+      fetchData();
     } catch (error) {
       console.error('Error:', error);
       toast(`Error:${error}`, 'error');
       setLoading(false);
     }
   };
+  const fetchData = async () => {
+    try {
+      const data = await loadProposalData();
+      if (chainId === 0) {
+        setProposalData(data);
+      } else {
+        const filteredByChain = data.filter((p) => p.chain === chainId.toString());
+        setProposalData(filteredByChain);
+      }
+    } catch (error) {
+      console.error('Error fetching proposal data:', error);
+    }
+  };
 
   useEffect(() => {
-    const getThreshold = async () => {
+    if (signer) {
+      let chain: Number = getChainId(config);
+      const contractAddress = getEthereumContractByChain(chain.toString());
+
+      setChainId(chain);
+      setContractAddress(contractAddress);
+
+      console.log(chain, contractAddress);
+    }
+  }, [signer, config]);
+
+  useEffect(() => {
+    const getThresholdAndOwners = async () => {
+      let contract = new ethers.Contract(contractAddress, abi, signer);
       let temp = await contract.getThreshold();
+      let owners = await contract.getOwners();
+      setOwner(owners);
       setThresh(Number(temp));
-      console.log(thres, 'thres');
+      console.log(thres, owner, 'thres and owner');
     };
-    getThreshold();
-  });
+    getThresholdAndOwners();
+  }, [thres, owner]);
 
   useEffect(() => {
     console.log('Current chain ID:', chainId);
@@ -151,18 +172,8 @@ const EVMApproveProposalsPage = () => {
   }, [chainId]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await loadProposalData();
-        console.log('Fetched proposal data:', data);
-        setProposalData(data);
-      } catch (error) {
-        console.error('Error fetching proposal data:', error);
-      }
-    };
-
     fetchData();
-  }, []);
+  }, [chainId]);
 
   return (
     <div className="evm-manager-page">
@@ -211,7 +222,7 @@ const EVMApproveProposalsPage = () => {
           </tbody>
         </table>
       </div>
-      )
+
       <ToastContainer />
     </div>
   );

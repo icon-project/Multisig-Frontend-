@@ -86,14 +86,6 @@ const EVMProposalDetails = () => {
     console.log('after calling proposal ', func);
     getFunctionData();
   });
-  useEffect(() => {
-    const getThreshold = async () => {
-      let temp = await contract.getThreshold();
-      setThresh(Number(temp));
-      console.log(thres, 'thres');
-    };
-    getThreshold();
-  });
 
   useEffect(() => {
     const getThreshold = async () => {

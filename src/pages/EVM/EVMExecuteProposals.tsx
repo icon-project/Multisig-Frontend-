@@ -58,10 +58,24 @@ const EVMExecuteProposals = () => {
       await evmExecuteContractCall(signer, contractAddress, proposal);
       toast(`Proposal executed successfully}`, 'success');
       setLoading(true);
+      fetchFilteredData();
     } catch (error) {
       console.error('Error in calling contract:', error);
       toast(`Error: ${error}`, 'error');
       setLoading(false);
+    }
+  };
+  const fetchFilteredData = async () => {
+    try {
+      const data = await loadProposalData();
+      console.log('Fetched proposal data:', data);
+
+      // Filter proposals with status "Passed"
+      const filteredData = data.filter((proposal: any) => proposal.status === 'Passed');
+
+      setProposalData(filteredData);
+    } catch (error) {
+      console.error('Error fetching proposal data:', error);
     }
   };
 
@@ -72,19 +86,6 @@ const EVMExecuteProposals = () => {
   }, [chainId]);
 
   useEffect(() => {
-    const fetchFilteredData = async () => {
-      try {
-        const data = await loadProposalData();
-        console.log('Fetched proposal data:', data);
-
-        // Filter proposals with status "Passed"
-        const filteredData = data.filter((proposal: any) => proposal.status === 'Passed');
-
-        setProposalData(filteredData);
-      } catch (error) {
-        console.error('Error fetching proposal data:', error);
-      }
-    };
     fetchFilteredData();
   }, []);
 
