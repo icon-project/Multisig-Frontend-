@@ -15,6 +15,7 @@ import { testconfig, mainconfig } from '../../config';
 import { evmApproveContractCall, evmExecuteContractCall } from '../../services/evmServices';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
+import EVMLayoutPage from '../EVMLayoutPage';
 
 const EVMProposalDetails = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
@@ -181,57 +182,63 @@ const EVMProposalDetails = () => {
   };
 
   return (
-    // <EVMLayoutPage>
     <div>
-      <ConnectButton />
-      <div className="bg-white p-3 overflow-x-auto mx-auto">
+      <div className=" pl-8 overflow-x-auto mx-auto shadow-lg shadow-blue-500/40 p-8 pt-0 w-[90%] mt-5 text-gray-800">
         {loading ? <SpinningCircles fill="black" className="w-8 h-8 inline pl-3 fixed top-[100px] left-[300px]" /> : ''}
 
-        <div className="mt-10 flex flex-col gap-3">
+        <div className="mt-10 flex flex-col gap-2 ">
           {proposal ? (
             <>
-              <h1 className="text-4xl">Proposal Details</h1>
-              <p>Proposal ID: {proposal.proposal}</p>
-              <p>Title: {proposal.remark}</p>
-              <p>Status: {proposal.status}</p>
+              <h1 className="text-3xl pb-3">Proposal Details</h1>
+              <p className="font-light">Proposal ID: {proposal.proposal}</p>
+              <p className="font-light">Title: {proposal.remark}</p>
+              <p className="font-light">Status: {proposal.status}</p>
             </>
           ) : (
             <p>No proposal with this hash</p>
           )}
         </div>
-        <div className="flex flex-col gap-2 mt-5">
-          <h1 className="text-2xl">Messages</h1>
-          <p className="text-sm font-light">Function: {func || 'N/A'}</p>
-          <p className="text-sm font-light">Parameters of functions</p>
-          {func === 'addOwnerWithThreshold' && decodedData && (
-            <div>
-              <p className="pl-5 text-sm font-extralight">Owner: {decodedData[0]}</p>
-              <p className="pl-5 text-sm font-extralight">Threshold: {Number(decodedData._threshold)}</p>
-            </div>
-          )}
-          {func === 'removeOwner' && decodedData && (
-            <div>
-              <p className="pl-5 text-sm font-extralight">Previous Owner={decodedData.prevOwner}</p>
-              <p className="pl-5 text-sm font-extralight">Owner={decodedData.owner}</p>
-              <p className="pl-5 text-sm font-extralight">Threshold={Number(decodedData._threshold)}</p>
-            </div>
-          )}
-          {func === 'upgradeAndCall' && decodedData && (
-            <div>
-              <p className="pl-5 text-sm font-extralight">Implementation address: {decodedData.implementation}</p>
-              <p className="pl-5 text-sm font-extralight">Proxy address: {decodedData.proxy}</p>
-            </div>
-          )}
+        <div className="flex flex-row gap-2  text-gray-800">
+          <div className="flex flex-col gap-2 mt-5">
+            <h1 className="text-xl">Messages</h1>
+            <p className="text-sm font-light pl-5">Function: {func || 'N/A'}</p>
+            <p className="text-sm font-light pl-5">Parameters of functions</p>
+            {func === 'addOwnerWithThreshold' && decodedData && (
+              <div>
+                <p className="pl-10 text-sm font-extralight">Owner: {decodedData[0]}</p>
+                <p className=" pl-10 text-sm font-extralight">Threshold: {Number(decodedData._threshold)}</p>
+              </div>
+            )}
+            {func === 'removeOwner' && decodedData && (
+              <div>
+                <p className="pl-5 text-sm font-extralight">Previous Owner={decodedData.prevOwner}</p>
+                <p className="pl-5 text-sm font-extralight">Owner={decodedData.owner}</p>
+                <p className="pl-5 text-sm font-extralight">Threshold={Number(decodedData._threshold)}</p>
+              </div>
+            )}
+            {func === 'upgradeAndCall' && decodedData && (
+              <div>
+                <p className="pl-5 text-sm font-extralight">Implementation address: {decodedData.implementation}</p>
+                <p className="pl-5 text-sm font-extralight">Proxy address: {decodedData.proxy}</p>
+              </div>
+            )}
+          </div>
+          <div className="pt-20  pl-10">
+            {proposal?.status === 'Passed' ? (
+              <button className="d-btn mt-5 hover:bg-blue-300 hover:text-white" onClick={() => handleExecute(proposal)}>
+                Execute Proposal
+              </button>
+            ) : (
+              <button
+                className="d-btn mt-5  hover:bg-blue-300 hover:text-white"
+                onClick={() => handleApprove(proposal?.proposal)}
+              >
+                Approve Proposal
+              </button>
+            )}
+          </div>
         </div>
-        {proposal?.status === 'Passed' ? (
-          <button className="d-btn mt-5 border-black" onClick={() => handleExecute(proposal)}>
-            Execute Proposal
-          </button>
-        ) : (
-          <button className="d-btn mt-5 border-black" onClick={() => handleApprove(proposal?.proposal)}>
-            Approve Proposal
-          </button>
-        )}
+
         {loading && <SpinningCircles />}
         <ToastContainer />
       </div>

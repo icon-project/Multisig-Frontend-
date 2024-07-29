@@ -28,7 +28,6 @@ function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/cosmos/*" element={<CosmosLayoutPage />} />
                   <Route path="/evm/*" element={<EVMLayoutPage />} />
-                  <Route path="/evm/proposals/:id" element={<EVMProposalDetails />} />
                 </Routes>
               </Router>
             </div>

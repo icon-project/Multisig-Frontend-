@@ -46,7 +46,7 @@ const EVMApproveProposalsPage = () => {
   const [contractAddress, setContractAddress] = useState<string>('');
   const [proposal_data, setProposalData] = useState<Proposal[]>([]);
   const [thres, setThresh] = useState<number>(0);
-  const [owner, setOwner] = useState('');
+  const [owner, setOwner] = useState<string[]>([]);
 
   function generateSignature() {
     if (!signer || !signer._address) {
@@ -102,8 +102,13 @@ const EVMApproveProposalsPage = () => {
       proposal.signatures = owner
         .map((owner: string) => owner.slice(2).toLowerCase())
         .reverse()
-        .map((owner: string) => proposal.signatures.find((sig: any) => sig.includes(owner)))
-        .filter((sig: any) => sig !== undefined);
+        .map((owner: string) => {
+          return proposal.signatures.find((sig: BytesLike) => {
+            const sigHex = ethers.utils.hexlify(sig).toLowerCase();
+            return sigHex.includes(owner);
+          });
+        })
+        .filter((sig: BytesLike | undefined): sig is BytesLike => sig !== undefined);
 
       console.log(proposal.signatures, 'propo');
 

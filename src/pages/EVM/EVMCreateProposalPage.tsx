@@ -332,7 +332,7 @@ const EVMCreateProposalPage = () => {
                     </button>
                     {showOwner === true &&
                       owner.map((item: any, index: number) => (
-                        <div className="w-[50%]">
+                        <div className="w-[50%] pt-2">
                           <p className="font-extralight text-xs text-gray-400" key={index}>
                             {item}
                           </p>
@@ -342,8 +342,8 @@ const EVMCreateProposalPage = () => {
                   <div className="">
                     <button type="button" onClick={handleShowThres} className="p-2 outline outline-blue-300 rounded">
                       Current Threshold
-                      {showThresh === true ? <span className="  text-gray-400 pl-2">{thres}</span> : ''}
                     </button>
+                    {showThresh === true ? <span className="  text-gray-400 pl-2">{thres}</span> : ''}
                   </div>
                 </div>
 
