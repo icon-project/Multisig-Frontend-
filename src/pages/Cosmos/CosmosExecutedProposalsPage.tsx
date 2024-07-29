@@ -14,6 +14,7 @@ const CosmosExecutedProposalsPage = () => {
   const { getContractData } = useContractData(chainName);
   const itemsPerPageLimit = 10;
   const [itemsListOffset, setItemsListOffset] = useState(0);
+  const chainId = state.activeCosmosChain.chainId;
 
   const getProposals = async (limit: number = 10, offset: number = 0) => {
     const txMsg = {
@@ -37,10 +38,10 @@ const CosmosExecutedProposalsPage = () => {
   };
 
   useEffect(() => {
-    if (address && chainName && itemsListOffset >= 0) {
+    if (itemsListOffset >= 0 && chainId) {
       getProposals(itemsPerPageLimit, itemsListOffset);
     }
-  }, [address, chainName, itemsListOffset]);
+  }, [itemsListOffset, chainId, address]);
 
   return (
     <div className="cosmos-approval-page w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
