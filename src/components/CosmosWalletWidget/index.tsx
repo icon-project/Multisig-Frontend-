@@ -29,20 +29,20 @@ const CosmosWalletWidget = () => {
 
   return (
     <div className="cosmos-wallet-widget">
-      {address ? (
-        <div className="flex gap-3">
-          <select
-            id="cosmos-chains"
-            className="bg-[#2d3748] text-white text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            value={activeChain}
-            onChange={handleActiveChainChange}
-          >
-            {AvailableChainOptions.map((chain: any, index) => (
-              <option value={chain.chainName} key={index}>
-                {chain.name}
-              </option>
-            ))}
-          </select>
+      <div className="flex gap-3">
+        <select
+          id="cosmos-chains"
+          className="bg-[#2d3748] text-white text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          value={activeChain}
+          onChange={handleActiveChainChange}
+        >
+          {AvailableChainOptions.map((chain: any, index) => (
+            <option value={chain.chainName} key={index}>
+              {chain.name}
+            </option>
+          ))}
+        </select>
+        {address ? (
           <div className="flex-shrink-0">
             <button
               onClick={openView}
@@ -51,15 +51,17 @@ const CosmosWalletWidget = () => {
               View Cosmos Wallet
             </button>
           </div>
-        </div>
-      ) : (
-        <button
-          onClick={connect}
-          className="bg-[#2d3748] text-white font-semibold py-1 px-3 rounded cursor-pointer h-full min-h-[40px]"
-        >
-          Connect Cosmos Wallet
-        </button>
-      )}
+        ) : (
+          <div className="flex-shrink-0">
+            <button
+              onClick={connect}
+              className="bg-[#2d3748] text-white font-semibold py-1 px-3 rounded cursor-pointer h-full min-h-[40px]"
+            >
+              Connect Cosmos Wallet
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
