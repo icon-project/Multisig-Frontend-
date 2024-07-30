@@ -67,16 +67,16 @@ const EVMProposalDetails = () => {
       let temp = await loadProposalData();
       setProposals(temp);
 
-      // Make sure proposals is defined before filtering
+      // filtering according to id/hash
       if (temp) {
         const filteredProposal = temp.find((p: any) => p.proposal === id);
-        setProposal(filteredProposal || null);
+        setProposal(filteredProposal);
       }
+      console.log(proposal, 'temp');
     } catch (error) {
       console.error('Error fetching proposals:', error);
     }
   };
-
   useEffect(() => {
     getData();
     console.log('after calling proposal ', proposals, proposal);
@@ -85,7 +85,7 @@ const EVMProposalDetails = () => {
   useEffect(() => {
     console.log('after calling proposal ', func);
     getFunctionData();
-  }, []);
+  }, [proposal]);
 
   useEffect(() => {
     const getThreshold = async () => {

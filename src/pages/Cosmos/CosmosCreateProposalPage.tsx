@@ -40,6 +40,7 @@ const CosmosCreateProposalPage = () => {
   const handleMemberMgmtProposal = async () => {
     const chainId = state.activeCosmosChain.chainId;
     const chainName = state.activeCosmosChain.chainName;
+    console.log('Chainname', chainName);
     const contractAddress = getCosmosContractByChain(chainName);
     const multiSigMemberContract = getCosmosMultiSigMemberContractByChain(chainName);
     if (!contractAddress || !multiSigMemberContract) {

@@ -10,16 +10,18 @@ import { useContractData } from '../../hooks/useContractData';
 import { executeArchwayContractCall } from '../../utils/archwayUtils';
 import useToast from '../../hooks/useToast';
 import { CosmosChains } from '../../constants/chains';
-import { Proposal, ProposalStatus } from '../../@types/CosmosProposalsTypes';
+import { Proposal } from '../../@types/CosmosProposalsTypes';
+import { useTx } from '../../hooks/useTx';
 
 const CosmosProposalDetails = () => {
   const { id } = useParams();
   const { state } = useAppContext();
   const chainName = state.activeCosmosChain.chainName;
+  const { tx } = useTx(chainName);
   const contractAddress = getCosmosContractByChain(chainName);
   const { address, isWalletConnected, connect } = useChain(chainName);
   const [proposals, setProposals] = useState<any>();
-  const [proposal, setProposal] = useState<any>();
+  const [proposal, setProposal] = useState<Proposal>();
   const { getContractData } = useContractData(chainName);
   const [decodedData, setDecodedData] = useState<any>(null);
   const { toast, ToastContainer } = useToast();
@@ -33,11 +35,8 @@ const CosmosProposalDetails = () => {
     };
     const rpcUrl = Object.values(CosmosChains).filter((chain) => chain.chainName === chainName)[0].rpcUrl;
     const data = await getContractData(txMsg, rpcUrl);
-    setProposals(data);
-    if (data?.proposals) {
-      const filteredProposals = data.proposals.filter((proposal: Proposal) => proposal.id === Number(id));
-      setProposal(filteredProposals[0]);
-    }
+    console.log(data, 'checks');
+    setProposals(data.proposals);
   };
 
   const decodeMessage = (msg: any) => {
@@ -234,76 +233,85 @@ const CosmosProposalDetails = () => {
   };
   useEffect(() => {
     getProposals();
-    console.log('filtered by id ', proposal);
-    console.log('all proposals', proposals);
-    // console.log('proposal message', proposal.message);
   }, [id]);
 
+  useEffect(() => {
+    if (proposals && id) {
+      const filteredProposal = proposals.find((p: Proposal) => p.id === Number(id));
+      setProposal(filteredProposal);
+    }
+  }, [proposals, id]);
+
+  useEffect(() => {
+    console.log('proposals fetched', proposals, proposal);
+  });
+
   return (
-    // <div>
-    //   <div className=" pl-8 overflow-x-auto mx-auto shadow-lg shadow-blue-500/40 p-8 pt-0 w-[90%] mt-5 text-gray-800">
-    // {loading ? <SpinningCircles fill="black" className="w-8 h-8 inline pl-3 fixed top-[100px] left-[300px]" /> : ''}
+    <div>
+      {proposal && (
+        <div className=" pl-8 overflow-x-auto mx-auto shadow-lg shadow-blue-500/40 p-8 pt-0 w-[90%] mt-5 text-gray-800">
+          {/* {loading ? <SpinningCircles fill="black" className="w-8 h-8 inline pl-3 fixed top-[100px] left-[300px]" /> : ''} */}
 
-    //     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-    //       <div className="max-w-3xl w-full bg-white p-8 rounded-lg shadow-lg">
-    //         <h1 className="text-2xl font-bold mb-4">Proposal Details</h1>
-    //         <div className="mb-4">
-    //           <p>
-    //             <strong>Proposal ID:</strong> {proposal.id}
-    //           </p>
-    //           <p>
-    //             <strong>Title:</strong> {proposal.title}
-    //           </p>
+          <div className="flex justify-center items-center min-h-screen bg-gray-100">
+            <div className="max-w-3xl w-full bg-white p-8 rounded-lg shadow-lg">
+              <h1 className="text-2xl font-bold mb-4">Proposal Details</h1>
+              <div className="mb-4">
+                <p>
+                  <strong>Proposal ID:</strong> {id}
+                </p>
+                <p>
+                  <strong>Title:</strong> {proposal.title}
+                </p>
 
-    //           <p>
-    //             <strong>Proposer:</strong> {proposal.proposer}
-    //           </p>
+                <p>
+                  <strong>Proposer:</strong> {proposal.proposer}
+                </p>
 
-    //           <p>
-    //             <strong>Status:</strong> {proposal.status}
-    //           </p>
+                <p>
+                  <strong>Status:</strong> {proposal.status}
+                </p>
 
-    //           <p>
-    //             <strong>Expires At:</strong> {proposal.expiresAt}
-    //           </p>
-    //         </div>
-    //         <hr className="my-4" />
-    //         <h5 className="text-xl font-semibold mb-2">Messages:</h5>
-    //         {proposal.msgs.map((message, index) => (
-    //           <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg shadow-inner">
-    //             <>
-    //               <p>
-    //                 <strong>Contract Address:</strong> {message.wasm.execute.contract_addr}
-    //               </p>
-    //               <p>
-    //                 <strong>Message:</strong>
-    //               </p>
-    //               <pre className="bg-gray-200 p-2 rounded">{decodeMessage(message.wasm.execute.msg)}</pre>
-    //             </>
-    //           </div>
-    //         ))}
-    //         {proposal.status === 'open' && (
-    //           <button
-    //             // onClick={handleApproveClick}
-    //             className="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-600 float-right ml-2"
-    //           >
-    //             Approve
-    //           </button>
-    //         )}
-    //         {proposal.status === 'passed' && (
-    //           <button
-    //             // onClick={handleExecute}
-    //             className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 float-right ml-2"
-    //           >
-    //             Execute
-    //           </button>
-    //         )}
-    //       </div>
-    //     </div>
-    //     <ToastContainer />
-    //   </div>
-    // </div>
-    <div>id: {id}</div>
+                <p>
+                  <strong>Expires At:</strong> {new Date(Number(proposal.expires.at_time) / 100000).toLocaleString()}
+                </p>
+              </div>
+              <hr className="my-4" />
+              <h5 className="text-xl font-semibold mb-2">Messages:</h5>
+              {proposal.msgs.map((message, index) => (
+                <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg shadow-inner">
+                  <>
+                    <p>
+                      <strong>Contract Address:</strong> {message.wasm.execute.contract_addr}
+                    </p>
+                    <p>
+                      <strong>Message:</strong>
+                    </p>
+                    <pre className="bg-gray-200 p-2 rounded">{decodeMessage(message.wasm.execute.msg)}</pre>
+                  </>
+                </div>
+              ))}
+              {proposal.status === 'open' && (
+                <button
+                  onClick={() => handleApproveClick(Number(proposal.id))}
+                  className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-green-600 float-right ml-2"
+                >
+                  Approve
+                </button>
+              )}
+              {proposal.status === 'passed' && (
+                <button
+                  onClick={() => handleExecuteClick(Number(proposal.id))}
+                  className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 float-right ml-2"
+                >
+                  Execute
+                </button>
+              )}
+            </div>
+          </div>
+          <ToastContainer />
+        </div>
+      )}
+    </div>
   );
 };
 

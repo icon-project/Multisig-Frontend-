@@ -103,7 +103,17 @@ const EVMCreateProposalPage = () => {
         const proposalRef = ref(database, 'proposals');
         await set(proposalRef, proposals);
         console.log('Proposal data saved to proposal_data.json');
+        setMemberData({
+          owner: '',
+          threshold: '',
+        });
         toast('Proposal created successfully', 'success');
+        setFormData({
+          proxyAddress: '',
+          proxyAdminAddress: '',
+          implementationAddress: '',
+          remarks: '',
+        });
       } else {
         console.log('Proposal hash already exists. No new proposal added.');
         toast(`Proposal hash already exists. No new proposal added.`, 'info');
@@ -181,6 +191,10 @@ const EVMCreateProposalPage = () => {
         const proposalRef = ref(database, 'proposals');
         await set(proposalRef, proposals);
         toast('Proposal created successfully', 'success');
+        setMemberData({
+          owner: '',
+          threshold: '',
+        });
 
         console.log('added');
       } else {
@@ -366,7 +380,7 @@ const EVMCreateProposalPage = () => {
                       }}
                       className="border-blue-300  text-sm d-btn"
                     >
-                      Current Owners
+                      Show Owners
                     </button>
                     {/* {showOwner === true &&
                       owner.map((item: any, index: number) => (
@@ -389,7 +403,7 @@ const EVMCreateProposalPage = () => {
                       }}
                       className="border-blue-300  text-sm d-btn"
                     >
-                      Current Threshold
+                      Show Threshold
                     </button>
                     {/* {showThresh === true ? <span className="  text-gray-400 pl-2">{thres}</span> : ''} */}
                   </div>

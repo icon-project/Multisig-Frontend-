@@ -5,6 +5,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import EVMApproveProposalsPage from './EVM/EVMApproveProposalsPage';
 import EVMCreateProposalPage from './EVM/EVMCreateProposalPage';
 import EVMExecuteProposals from './EVM/EVMExecuteProposals';
+import EVMExecutedProposals from './EVM/EVMExecutedProposals';
 import EVMProposalDetails from './EVM/EVMProposalDetails';
 interface SideNavRoutes {
   name: string;
@@ -47,7 +48,7 @@ const EVMLayoutPage = () => {
             <Route path="approve-proposals" element={<EVMApproveProposalsPage />} />
             <Route path="create-proposals" element={<EVMCreateProposalPage />} />
             <Route path="execute-proposals" element={<EVMExecuteProposals />} />
-            <Route path="executed-proposals" element={<>Executed Proposals</>} />
+            <Route path="executed-proposals" element={<EVMExecutedProposals />} />
             <Route path="proposals/:id" element={<EVMProposalDetails />} />
             <Route path="*" element={<Navigate to="approve-proposals" replace />} />
           </Routes>
