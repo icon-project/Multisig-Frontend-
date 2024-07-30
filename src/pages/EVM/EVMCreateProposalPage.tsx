@@ -12,9 +12,11 @@ import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
+import { useNavigate } from 'react-router-dom';
 
 const EVMCreateProposalPage = () => {
   const signer = useEthersSigner();
+  const navigate = useNavigate();
   const { toast, ToastContainer } = useToast();
   const SENITAL_OWNERS = '0x0000000000000000000000000000000000000001';
   const [loading, setLoading] = useState(false);

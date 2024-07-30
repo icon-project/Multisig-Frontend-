@@ -11,6 +11,7 @@ import { database } from '../../firebase';
 import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
+import { watchAccount } from '@wagmi/core';
 
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 import { evmApproveContractCall } from '../../services/evmServices.ts';
@@ -39,7 +40,7 @@ type Proposal = {
 const EVMApproveProposalsPage = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [loading, setLoading] = useState(false);
-
+  // const { connector: activeConnector } = useAccount();
   const { toast, ToastContainer } = useToast();
   const signer = useEthersSigner();
   const [chainId, setChainId] = useState<Number>(0);
@@ -159,6 +160,23 @@ const EVMApproveProposalsPage = () => {
   }, [signer, config]);
 
   useEffect(() => {
+    fetchData();
+  }, [chainId]);
+
+  // useEffect(() => {
+  //   const handleConnectorUpdate = ({ account }: any) => {
+  //     if (account) {
+  //       console.log('new account', account);
+  //     }
+  //   };
+
+  //   if (activeConnector) {
+  //     activeConnector.on('change', handleConnectorUpdate);
+  //   }
+
+  //   return () => activeConnector.off('change', handleConnectorUpdate);
+  // }, [activeConnector]);
+  useEffect(() => {
     const getThresholdAndOwners = async () => {
       let contract = new ethers.Contract(contractAddress, abi, signer);
       let temp = await contract.getThreshold();
@@ -168,17 +186,7 @@ const EVMApproveProposalsPage = () => {
       console.log(thres, owner, 'thres and owner');
     };
     getThresholdAndOwners();
-  }, [thres, owner]);
-
-  useEffect(() => {
-    console.log('Current chain ID:', chainId);
-    let address = contractAddress;
-    console.log('Contract address:', address);
-  }, [chainId]);
-
-  useEffect(() => {
-    fetchData();
-  }, [chainId]);
+  }, [contractAddress, signer]);
 
   return (
     <div className="evm-manager-page">
