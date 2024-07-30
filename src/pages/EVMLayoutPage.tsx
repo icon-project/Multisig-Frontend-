@@ -14,15 +14,16 @@ interface SideNavRoutes {
 
 const SideNavRoutes: SideNavRoutes[] = [
   {
-    name: 'approve-proposal',
-    title: 'Approve Proposals',
-    route: 'approve-proposals',
-  },
-  {
     name: 'create-proposal',
     title: 'Create Proposals',
     route: 'create-proposals',
   },
+  {
+    name: 'approve-proposal',
+    title: 'Approve Proposals',
+    route: 'approve-proposals',
+  },
+
   {
     name: 'execute-proposal',
     title: 'Execute Proposals',

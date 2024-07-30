@@ -6,7 +6,7 @@ import CosmosApproveProposalslPage from './Cosmos/CosmosApproveProposalslPage';
 import CosmosCreateProposalPage from './Cosmos/CosmosCreateProposalPage';
 import CosmosExecuteProposalslPage from './Cosmos/CosmosExecuteProposalsPage';
 import CosmosExecutedProposalsPage from './Cosmos/CosmosExecutedProposalsPage';
-
+import CosmosProposalDetails from './Cosmos/CosmosProposalDetails';
 interface SideNavRoutes {
   name: string;
   title: string;
@@ -48,6 +48,8 @@ const CosmosLayoutPage = () => {
             <Route path="create-proposals" element={<CosmosCreateProposalPage />} />
             <Route path="execute-proposals" element={<CosmosExecuteProposalslPage />} />
             <Route path="executed-proposals" element={<CosmosExecutedProposalsPage />} />
+            <Route path="proposals/:id" element={<CosmosProposalDetails />} />
+
             <Route path="*" element={<Navigate to="approve-proposals" replace />} />
           </Routes>
         </div>

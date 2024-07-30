@@ -10,12 +10,11 @@ import { useEthersSigner } from '../../utils/ethers';
 import { database } from '../../firebase';
 import { ref, set } from 'firebase/database';
 import { getEthereumContractByChain } from '../../constants/contracts';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+
 import { testconfig, mainconfig } from '../../config';
 import { evmApproveContractCall, evmExecuteContractCall } from '../../services/evmServices';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
-import EVMLayoutPage from '../EVMLayoutPage';
 
 const EVMProposalDetails = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
@@ -86,7 +85,7 @@ const EVMProposalDetails = () => {
   useEffect(() => {
     console.log('after calling proposal ', func);
     getFunctionData();
-  });
+  }, []);
 
   useEffect(() => {
     const getThreshold = async () => {
@@ -95,7 +94,7 @@ const EVMProposalDetails = () => {
       console.log(thres, 'thres');
     };
     getThreshold();
-  });
+  }, []);
 
   const handleApprove = async (hash: string) => {
     setLoading(true);
@@ -198,7 +197,7 @@ const EVMProposalDetails = () => {
             <p>No proposal with this hash</p>
           )}
         </div>
-        <div className="flex flex-row gap-2  text-gray-800">
+        <div className="flex flex-row gap-10  text-gray-800">
           <div className="flex flex-col gap-2 mt-5">
             <h1 className="text-xl">Messages</h1>
             <p className="text-sm font-light pl-5">Function: {func || 'N/A'}</p>

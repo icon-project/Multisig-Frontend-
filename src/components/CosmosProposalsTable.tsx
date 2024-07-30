@@ -2,6 +2,7 @@ import React, { ReactNode, useState } from 'react';
 import { convertTimestampToDateTime } from '../utils/dateTimeUtils';
 import GeneralModal from './GeneralModal';
 import { Proposal } from '../@types/CosmosProposalsTypes';
+import { Link } from 'react-router-dom';
 
 interface ModalDetails {
   show: boolean;
@@ -55,6 +56,7 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
               <th>Status</th>
               <th>Expires At</th>
               <th>Actions</th>
+              <th>Details</th>
             </tr>
           </thead>
           <tbody>
@@ -106,6 +108,11 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
                       </button>
                     )}
                   </div>
+                </td>
+                <td>
+                  <Link to={`/cosmos/proposals/${proposal.id}`}>
+                    <button className="d-btn">Details</button>
+                  </Link>
                 </td>
               </tr>
             ))}
