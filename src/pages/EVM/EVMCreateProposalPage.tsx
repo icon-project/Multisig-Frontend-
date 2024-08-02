@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { testconfig, mainconfig } from '../../config';
 import { getChainId } from '@wagmi/core';
 import { ethers } from 'ethers';
@@ -12,7 +12,6 @@ import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
-import { useNavigate } from 'react-router-dom';
 import GeneralModal from '../../components/GeneralModal';
 
 interface ModalDetails {
@@ -23,7 +22,6 @@ interface ModalDetails {
 
 const EVMCreateProposalPage = () => {
   const signer = useEthersSigner();
-  const navigate = useNavigate();
   const { toast, ToastContainer } = useToast();
   const SENITAL_OWNERS = '0x0000000000000000000000000000000000000001';
   const [loading, setLoading] = useState(false);
@@ -41,8 +39,7 @@ const EVMCreateProposalPage = () => {
     owner: '',
     threshold: '',
   });
-  const [showOwner, setShowOwner] = useState(false);
-  const [showThresh, setShowThres] = useState(false);
+
   const [proposalType, setProposalType] = useState('member-management');
 
   const chainId = getChainId(config);
@@ -277,10 +274,6 @@ const EVMCreateProposalPage = () => {
       ...memberData,
       [name]: value, // Update the specific field
     }));
-  };
-
-  const handleShowThres = () => {
-    setShowThres((prev) => !prev);
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

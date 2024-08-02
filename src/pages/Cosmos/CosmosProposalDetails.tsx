@@ -1,6 +1,5 @@
 import { useParams } from 'react-router-dom';
 import { Base64 } from 'js-base64';
-import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 import { useChain } from '@cosmos-kit/react';
 import { executeInjectiveContractCall } from '../../utils/injectiveUtils';
 import { useAppContext } from '../../context/AppContext';
@@ -23,7 +22,6 @@ const CosmosProposalDetails = () => {
   const [proposals, setProposals] = useState<any>();
   const [proposal, setProposal] = useState<Proposal>();
   const { getContractData } = useContractData(chainName);
-  const [decodedData, setDecodedData] = useState<any>(null);
   const { toast, ToastContainer } = useToast();
 
   const getProposals = async (limit: number = 10, offset: number = 0) => {
@@ -249,11 +247,11 @@ const CosmosProposalDetails = () => {
   return (
     <div>
       {proposal && (
-        <div className=" pl-8 overflow-x-auto mx-auto shadow-lg shadow-blue-500/40 p-8 pt-0 w-[90%] mt-5 text-gray-800">
+        <div className=" pl-8 overflow-x-auto mx-auto p-8 pt-0  mt-5 text-gray-800">
           {/* {loading ? <SpinningCircles fill="black" className="w-8 h-8 inline pl-3 fixed top-[100px] left-[300px]" /> : ''} */}
 
-          <div className="flex justify-center items-center min-h-screen bg-gray-100">
-            <div className="max-w-3xl w-full bg-white p-8 rounded-lg shadow-lg">
+          <div className=" min-h-screen bg-[rgba(255,255,255,0.1)] shadow-sm rounded ">
+            <div className="max-w-3xl w-full  p-10 rounded-lg ">
               <h1 className="text-2xl font-bold mb-4">Proposal Details</h1>
               <div className="mb-4">
                 <p>
@@ -275,10 +273,10 @@ const CosmosProposalDetails = () => {
                   <strong>Expires At:</strong> {new Date(Number(proposal.expires.at_time) / 100000).toLocaleString()}
                 </p>
               </div>
-              <hr className="my-4" />
+              <hr className="my-4 " />
               <h5 className="text-xl font-semibold mb-2">Messages:</h5>
               {proposal.msgs.map((message, index) => (
-                <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg shadow-inner">
+                <div key={index} className="mb-4 p-4  rounded-lg ">
                   <>
                     <p>
                       <strong>Contract Address:</strong> {message.wasm.execute.contract_addr}
@@ -286,14 +284,14 @@ const CosmosProposalDetails = () => {
                     <p>
                       <strong>Message:</strong>
                     </p>
-                    <pre className="bg-gray-200 p-2 rounded">{decodeMessage(message.wasm.execute.msg)}</pre>
+                    <pre className=" p-2 rounded">{decodeMessage(message.wasm.execute.msg)}</pre>
                   </>
                 </div>
               ))}
               {proposal.status === 'open' && (
                 <button
                   onClick={() => handleApproveClick(Number(proposal.id))}
-                  className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-green-600 float-right ml-2"
+                  className="bg-blue-400 text-white px-4 py-2 rounded-lg  ml-2"
                 >
                   Approve
                 </button>

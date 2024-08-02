@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useEthersSigner } from '../../utils/ethers';
 import { BytesLike, ethers } from 'ethers';
 import { abi } from '../../abi/SAFE_ABI';
-import { Link } from 'react-router-dom';
+import EVMProposalsTable from '../../components/EVMProposalsTable.tsx';
 import useToast from '../../hooks/useToast';
 import { testconfig, mainconfig } from '../../config';
 import { getEthereumContractByChain } from '../../constants/contracts';
@@ -11,7 +11,6 @@ import { database } from '../../firebase';
 import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
-import { watchAccount } from '@wagmi/core';
 
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 import { evmApproveContractCall } from '../../services/evmServices.ts';
@@ -40,7 +39,8 @@ type Proposal = {
 const EVMApproveProposalsPage = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const [loading, setLoading] = useState(false);
-  // const { connector: activeConnector } = useAccount();
+  const itemsPerPageLimit = 5;
+  const [itemsListOffset, setItemsListOffset] = useState(0);
   const { toast, ToastContainer } = useToast();
   const signer = useEthersSigner();
   const [chainId, setChainId] = useState<Number>(0);
@@ -136,15 +136,20 @@ const EVMApproveProposalsPage = () => {
   const fetchData = async () => {
     try {
       const data = await loadProposalData();
-      if (chainId === 0) {
-        setProposalData(data);
-      } else {
-        const filteredByChain = data.filter((p) => p.chain === chainId.toString());
-        setProposalData(filteredByChain);
+      let filteredData = data;
+      if (chainId !== 0) {
+        filteredData = data.filter((p) => p.chain === chainId.toString());
       }
+
+      const paginatedData = filteredData.slice(itemsListOffset, itemsListOffset + itemsPerPageLimit);
+      setProposalData(paginatedData);
     } catch (error) {
       console.error('Error fetching proposal data:', error);
     }
+  };
+
+  const handlePaginationChanges = (offset: number) => {
+    setItemsListOffset(offset);
   };
 
   useEffect(() => {
@@ -163,19 +168,10 @@ const EVMApproveProposalsPage = () => {
     fetchData();
   }, [chainId]);
 
-  // useEffect(() => {
-  //   const handleConnectorUpdate = ({ account }: any) => {
-  //     if (account) {
-  //       console.log('new account', account);
-  //     }
-  //   };
+  useEffect(() => {
+    fetchData();
+  }, [itemsListOffset, chainId]); // Include `itemsListOffset` in the dependency array
 
-  //   if (activeConnector) {
-  //     activeConnector.on('change', handleConnectorUpdate);
-  //   }
-
-  //   return () => activeConnector.off('change', handleConnectorUpdate);
-  // }, [activeConnector]);
   useEffect(() => {
     const getThresholdAndOwners = async () => {
       let contract = new ethers.Contract(contractAddress, abi, signer);
@@ -191,51 +187,15 @@ const EVMApproveProposalsPage = () => {
   return (
     <div className="evm-manager-page">
       {loading ? <SpinningCircles fill="blue" className="w-16 h-10 inline pl-3 fixed top-20 left-[220px]" /> : ''}
-      <div className="overflow-x-auto">
-        <table className="d-table rounded bg-[rgba(255,255,255,0.1)]  mt-6">
-          <thead>
-            <tr>
-              <th>Proposal Hash</th>
-              <th className="w-6">Title </th>
-              <th>Status</th>
-              <th>Action</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {proposal_data.length > 0 ? (
-              proposal_data.map((proposal, index) => (
-                <tr key={index} className="">
-                  <td className=" ">{proposal.proposal}</td>
-
-                  <td className="w-96">{proposal.remark}</td>
-                  <td> {proposal.status}</td>
-                  <td>
-                    <button
-                      className="d-btn"
-                      onClick={() => {
-                        handleApprove(proposal.proposal);
-                      }}
-                    >
-                      Approve proposal
-                    </button>
-                  </td>
-                  <td>
-                    <Link to={`/evm/proposals/${proposal.proposal}`}>
-                      <button className="d-btn">Details</button>
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td className="text-center">No proposals</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="overflow-x-auto  bg-[rgba(255,255,255,0.5)] p-4 rounded ">
+        <EVMProposalsTable
+          proposal_data={proposal_data}
+          limit={itemsPerPageLimit}
+          offset={itemsListOffset}
+          handleOffsetChange={handlePaginationChanges}
+          approveAction={handleApprove}
+        />
       </div>
-
       <ToastContainer />
     </div>
   );
