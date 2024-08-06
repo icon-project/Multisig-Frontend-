@@ -9,7 +9,7 @@ import { useContractData } from '../../hooks/useContractData';
 import { executeArchwayContractCall } from '../../utils/archwayUtils';
 import useToast from '../../hooks/useToast';
 import { CosmosChains } from '../../constants/chains';
-import { Proposal } from '../../@types/CosmosProposalsTypes';
+import { Proposal, WasmExecuteMsg, WasmMigrateMsg } from '../../@types/CosmosProposalsTypes';
 import { useTx } from '../../hooks/useTx';
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 
@@ -278,12 +278,20 @@ const CosmosProposalDetails = () => {
             {proposal.msgs.map((message, index) => (
               <div key={index} className="mb-4 p-4 rounded-lg ">
                 <p>
-                  <strong>Contract Address:</strong> {message.wasm.execute.contract_addr}
+                  <strong>Contract Address:</strong>{' '}
+                  {(message.wasm as WasmExecuteMsg).execute?.contract_addr ||
+                    (message.wasm as WasmMigrateMsg).migrate?.contract_addr}
                 </p>
                 <p className="my-2">
                   <strong>Message:</strong>
                 </p>
-                <pre className="p-2 rounded bg-[rgba(255,255,255,0.9)]">{decodeMessage(message.wasm.execute.msg)}</pre>
+                <pre className="p-2 rounded bg-[rgba(255,255,255,0.9)]">
+                  {(message.wasm as WasmExecuteMsg).execute?.msg || (message.wasm as WasmMigrateMsg).migrate?.msg
+                    ? decodeMessage(
+                        (message.wasm as WasmExecuteMsg).execute?.msg || (message.wasm as WasmMigrateMsg).migrate?.msg,
+                      )
+                    : ''}
+                </pre>
               </div>
             ))}
           </div>
