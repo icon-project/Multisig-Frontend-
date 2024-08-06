@@ -243,12 +243,10 @@ const CosmosProposalDetails = () => {
 
   return (
     <div className="proposal-details-container w-full h-full relative">
-      {!proposal ? (
+      {!proposal && (
         <div className="loading-container absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <SpinningCircles fill="black" className="w-[64px] h-[64px]" />
         </div>
-      ) : (
-        ''
       )}
 
       {proposal && (
@@ -300,7 +298,7 @@ const CosmosProposalDetails = () => {
           {proposal.status === 'open' && (
             <button
               onClick={() => handleApproveClick(Number(proposal.id))}
-              className="bg-blue-400 text-white px-4 py-2 rounded-lg  ml-2"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg  ml-2"
             >
               Approve
             </button>
@@ -308,7 +306,7 @@ const CosmosProposalDetails = () => {
           {proposal.status === 'passed' && (
             <button
               onClick={() => handleExecuteClick(Number(proposal.id))}
-              className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
             >
               Execute
             </button>

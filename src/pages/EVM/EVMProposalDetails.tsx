@@ -13,8 +13,9 @@ import { getEthereumContractByChain } from '../../constants/contracts';
 
 import { testconfig, mainconfig } from '../../config';
 import { evmApproveContractCall, evmExecuteContractCall } from '../../services/evmServices';
-const APP_ENV = import.meta.env.VITE_APP_ENV;
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
+
+const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 const EVMProposalDetails = () => {
   const config = APP_ENV == 'dev' ? testconfig : mainconfig;
@@ -181,66 +182,93 @@ const EVMProposalDetails = () => {
   };
 
   return (
-    <div>
-      <div className=" pl-8 overflow-x-auto mx-auto shadow-lg shadow-blue-500/40 p-8 pt-0 w-[90%] mt-5 text-gray-800">
-        {loading ? <SpinningCircles fill="black" className="w-8 h-8 inline pl-3 fixed top-[100px] left-[300px]" /> : ''}
+    <div className="proposal-details-container w-full h-full relative">
+      {!proposal && (
+        <div className="loading-container absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <SpinningCircles fill="black" className="w-[64px] h-[64px]" />
+        </div>
+      )}
 
-        <div className="mt-10 flex flex-col gap-2 ">
-          {proposal ? (
-            <>
-              <h1 className="text-3xl pb-3">Proposal Details</h1>
-              <p className="font-light">Proposal ID: {proposal.proposal}</p>
-              <p className="font-light">Title: {proposal.remark}</p>
-              <p className="font-light">Status: {proposal.status}</p>
-            </>
+      {proposal && (
+        <div className="proposal-details text-gray-800 bg-[rgba(255,255,255,0.5)] shadow-sm w-full p-10 rounded-lg">
+          <h1 className="text-2xl font-bold mb-4">Proposal Details</h1>
+          <div className="mb-4">
+            <p>
+              <span className="font-bold">Proposal ID:</span> {proposal.proposal}
+            </p>
+            <p>
+              <span className="font-bold">Title:</span> {proposal.remark}
+            </p>
+            <p>
+              <span className="font-bold">Status:</span> {proposal.status}
+            </p>
+          </div>
+          <hr className="my-4" />
+          <div className="message-section">
+            <h5 className="text-xl font-semibold mb-2">Messages:</h5>
+            <div className="p-4">
+              <p className="text-sm">
+                <span className="font-bold">Function:</span> {func || 'N/A'}
+              </p>
+              <p className="text-sm font-bold mt-2">Parameters of function:</p>
+              <div className="bg-[rgba(255,255,255,0.9)] my-2 p-2 rounded">
+                {func === 'addOwnerWithThreshold' && decodedData && (
+                  <div>
+                    <p className="pl-10 text-sm">
+                      <span className="font-bold">Owner:</span> {decodedData[0]}
+                    </p>
+                    <p className="pl-10 text-sm">
+                      <span className="font-bold">Threshold:</span> {Number(decodedData._threshold)}
+                    </p>
+                  </div>
+                )}
+                {func === 'removeOwner' && decodedData && (
+                  <div>
+                    <p className="text-sm">
+                      <span className="font-bold">Previous Owner:</span> {decodedData.prevOwner}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-bold">Owner:</span> {decodedData.owner}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-bold">Threshold:</span> {Number(decodedData._threshold)}
+                    </p>
+                  </div>
+                )}
+                {func === 'upgradeAndCall' && decodedData && (
+                  <div>
+                    <p className="text-sm">
+                      <span className="font-bold">Implementation address:</span> {decodedData.implementation}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-bold">Proxy address:</span> {decodedData.proxy}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          {proposal?.status === 'Passed' ? (
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
+              onClick={() => handleExecute(proposal)}
+            >
+              Execute Proposal
+            </button>
           ) : (
-            <p>No proposal with this hash</p>
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
+              onClick={() => handleApprove(proposal?.proposal)}
+            >
+              Approve Proposal
+            </button>
           )}
-        </div>
-        <div className="flex flex-row gap-10  text-gray-800">
-          <div className="flex flex-col gap-2 mt-5">
-            <h1 className="text-xl">Messages</h1>
-            <p className="text-sm font-light pl-5">Function: {func || 'N/A'}</p>
-            <p className="text-sm font-light pl-5">Parameters of functions</p>
-            {func === 'addOwnerWithThreshold' && decodedData && (
-              <div>
-                <p className="pl-10 text-sm font-extralight">Owner: {decodedData[0]}</p>
-                <p className=" pl-10 text-sm font-extralight">Threshold: {Number(decodedData._threshold)}</p>
-              </div>
-            )}
-            {func === 'removeOwner' && decodedData && (
-              <div>
-                <p className="pl-5 text-sm font-extralight">Previous Owner={decodedData.prevOwner}</p>
-                <p className="pl-5 text-sm font-extralight">Owner={decodedData.owner}</p>
-                <p className="pl-5 text-sm font-extralight">Threshold={Number(decodedData._threshold)}</p>
-              </div>
-            )}
-            {func === 'upgradeAndCall' && decodedData && (
-              <div>
-                <p className="pl-5 text-sm font-extralight">Implementation address: {decodedData.implementation}</p>
-                <p className="pl-5 text-sm font-extralight">Proxy address: {decodedData.proxy}</p>
-              </div>
-            )}
-          </div>
-          <div className="pt-20  pl-10">
-            {proposal?.status === 'Passed' ? (
-              <button className="d-btn mt-5 hover:bg-blue-300 hover:text-white" onClick={() => handleExecute(proposal)}>
-                Execute Proposal
-              </button>
-            ) : (
-              <button
-                className="d-btn mt-5  hover:bg-blue-300 hover:text-white"
-                onClick={() => handleApprove(proposal?.proposal)}
-              >
-                Approve Proposal
-              </button>
-            )}
-          </div>
-        </div>
 
-        {loading && <SpinningCircles />}
-        <ToastContainer />
-      </div>
+          {loading && <SpinningCircles />}
+        </div>
+      )}
+
+      <ToastContainer />
     </div>
   );
 };
