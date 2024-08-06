@@ -20,27 +20,25 @@ const CosmosProposalDetails = () => {
   const { tx } = useTx(chainName);
   const contractAddress = getCosmosContractByChain(chainName);
   const { address, isWalletConnected, connect } = useChain(chainName);
-  const [proposals, setProposals] = useState<any>();
   const [proposal, setProposal] = useState<Proposal>();
   const { getContractData } = useContractData(chainName);
   const { toast, ToastContainer } = useToast();
 
-  const getProposals = async (limit: number = 10, offset: number = 0) => {
+  const getProposalDetails = async (id: number) => {
     const txMsg = {
-      list_proposals: {
-        limit: limit,
-        start_after: offset,
+      proposal: {
+        proposal_id: id
       },
     };
     const rpcUrl = Object.values(CosmosChains).filter((chain) => chain.chainName === chainName)[0].rpcUrl;
     const data = await getContractData(txMsg, rpcUrl);
-    console.log(data, 'checks');
-    setProposals(data.proposals);
+    setProposal(data);
   };
 
   const decodeMessage = (msg: any) => {
     return JSON.stringify(JSON.parse(Base64.decode(msg)), null, 2);
   };
+  
   // execution
   const handleInjectiveExecute = async (proposalId: number) => {
     const chainId = state.activeCosmosChain.chainId;
@@ -230,16 +228,10 @@ const CosmosProposalDetails = () => {
       handleApprove(proposalId);
     }
   };
-  useEffect(() => {
-    getProposals();
-  }, [id]);
 
   useEffect(() => {
-    if (proposals && id) {
-      const filteredProposal = proposals.find((p: Proposal) => p.id === Number(id));
-      setProposal(filteredProposal);
-    }
-  }, [proposals, id]);
+    if (id) getProposalDetails(parseInt(id));
+  }, [id]);
 
   return (
     <div className="proposal-details-container w-full h-full relative">
