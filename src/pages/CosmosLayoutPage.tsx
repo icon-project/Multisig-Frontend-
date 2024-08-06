@@ -6,7 +6,7 @@ import CosmosApproveProposalslPage from './Cosmos/CosmosApproveProposalslPage';
 import CosmosCreateProposalPage from './Cosmos/CosmosCreateProposalPage';
 import CosmosExecuteProposalslPage from './Cosmos/CosmosExecuteProposalsPage';
 import CosmosExecutedProposalsPage from './Cosmos/CosmosExecutedProposalsPage';
-
+import CosmosProposalDetails from './Cosmos/CosmosProposalDetails';
 interface SideNavRoutes {
   name: string;
   title: string;
@@ -42,12 +42,15 @@ const CosmosLayoutPage = () => {
       <Navbar walletComponent={<CosmosWalletWidget />} />
       <div className="flex flex-1">
         <SideNav links={SideNavRoutes} />
-        <div className="w-full md:w-4/5 p-4">
+        {/* 74px -> Height of Navbar */}
+        <div className="w-full md:w-4/5 p-4 overflow-auto h-[calc(100vh-74px)]">
           <Routes>
             <Route path="approve-proposals" element={<CosmosApproveProposalslPage />} />
             <Route path="create-proposals" element={<CosmosCreateProposalPage />} />
             <Route path="execute-proposals" element={<CosmosExecuteProposalslPage />} />
             <Route path="executed-proposals" element={<CosmosExecutedProposalsPage />} />
+            <Route path="proposals/:id" element={<CosmosProposalDetails />} />
+
             <Route path="*" element={<Navigate to="approve-proposals" replace />} />
           </Routes>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { testconfig, mainconfig } from '../../config';
 import { getChainId } from '@wagmi/core';
 import { ethers } from 'ethers';
@@ -12,6 +12,13 @@ import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 const APP_ENV = import.meta.env.VITE_APP_ENV;
+import GeneralModal from '../../components/GeneralModal';
+
+interface ModalDetails {
+  show: boolean;
+  title: string;
+  description: string | ReactNode;
+}
 
 const EVMCreateProposalPage = () => {
   const signer = useEthersSigner();
@@ -32,8 +39,7 @@ const EVMCreateProposalPage = () => {
     owner: '',
     threshold: '',
   });
-  const [showOwner, setShowOwner] = useState(false);
-  const [showThresh, setShowThres] = useState(false);
+
   const [proposalType, setProposalType] = useState('member-management');
 
   const chainId = getChainId(config);
@@ -43,6 +49,20 @@ const EVMCreateProposalPage = () => {
   const chain = getChainId(config);
 
   console.log('Chain', chain);
+
+  const [modalDetails, setModalDetails] = useState<ModalDetails>({
+    show: false,
+    title: '',
+    description: '',
+  });
+
+  const handleModalClose = () => {
+    setModalDetails({
+      show: false,
+      title: '',
+      description: '',
+    });
+  };
 
   const addMember = async () => {
     setLoading(true);
@@ -80,7 +100,17 @@ const EVMCreateProposalPage = () => {
         const proposalRef = ref(database, 'proposals');
         await set(proposalRef, proposals);
         console.log('Proposal data saved to proposal_data.json');
+        setMemberData({
+          owner: '',
+          threshold: '',
+        });
         toast('Proposal created successfully', 'success');
+        setFormData({
+          proxyAddress: '',
+          proxyAdminAddress: '',
+          implementationAddress: '',
+          remarks: '',
+        });
       } else {
         console.log('Proposal hash already exists. No new proposal added.');
         toast(`Proposal hash already exists. No new proposal added.`, 'info');
@@ -158,6 +188,10 @@ const EVMCreateProposalPage = () => {
         const proposalRef = ref(database, 'proposals');
         await set(proposalRef, proposals);
         toast('Proposal created successfully', 'success');
+        setMemberData({
+          owner: '',
+          threshold: '',
+        });
 
         console.log('added');
       } else {
@@ -242,14 +276,6 @@ const EVMCreateProposalPage = () => {
     }));
   };
 
-  const handleShowThres = () => {
-    setShowThres((prev) => !prev);
-  };
-  const handleShowOwners = () => {
-    setShowOwner((prev) => !prev);
-    console.log(owner);
-  };
-
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -323,27 +349,56 @@ const EVMCreateProposalPage = () => {
             <hr />
             {proposalType === 'member-management' && (
               <>
-                <span className="font-extralight text-gray-400 text-xs ">Click to get current values</span>
-
                 <div className="flex flex-row gap-8">
                   <div className="mb-2  ">
-                    <button type="button" onClick={handleShowOwners} className=" p-2 outline outline-blue-300 rounded">
-                      Current Owners
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModalDetails({
+                          show: true,
+                          title: 'Owners',
+                          description: (
+                            <pre>
+                              {' '}
+                              {owner.map((item: any, index: number) => (
+                                <div className="w-[50%] pt-2">
+                                  <p className="font-extralight text-xs text-gray-400" key={index}>
+                                    {item}
+                                  </p>
+                                </div>
+                              ))}
+                            </pre>
+                          ),
+                        });
+                      }}
+                      className="border-blue-300  text-sm d-btn"
+                    >
+                      Show Owners
                     </button>
-                    {showOwner === true &&
+                    {/* {showOwner === true &&
                       owner.map((item: any, index: number) => (
                         <div className="w-[50%] pt-2">
                           <p className="font-extralight text-xs text-gray-400" key={index}>
                             {item}
                           </p>
                         </div>
-                      ))}
+                      ))} */}
                   </div>
                   <div className="">
-                    <button type="button" onClick={handleShowThres} className="p-2 outline outline-blue-300 rounded">
-                      Current Threshold
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModalDetails({
+                          show: true,
+                          title: 'Threshold',
+                          description: <pre>{thres}</pre>,
+                        });
+                      }}
+                      className="border-blue-300  text-sm d-btn"
+                    >
+                      Show Threshold
                     </button>
-                    {showThresh === true ? <span className="  text-gray-400 pl-2">{thres}</span> : ''}
+                    {/* {showThresh === true ? <span className="  text-gray-400 pl-2">{thres}</span> : ''} */}
                   </div>
                 </div>
 
@@ -470,6 +525,12 @@ const EVMCreateProposalPage = () => {
           </form>
         </div>
       </div>
+      <GeneralModal
+        show={modalDetails.show}
+        closeHandler={handleModalClose}
+        title={modalDetails.title}
+        description={modalDetails.description}
+      />
       <ToastContainer />
     </>
   );

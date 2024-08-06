@@ -6,7 +6,7 @@ export default {
   },
   plugins: [require('daisyui')],
   daisyui: {
-    prefix: "d-",
-    themes: ["light"]
+    prefix: 'd-',
+    themes: ['light'],
   },
 };
