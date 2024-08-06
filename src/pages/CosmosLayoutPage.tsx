@@ -42,7 +42,8 @@ const CosmosLayoutPage = () => {
       <Navbar walletComponent={<CosmosWalletWidget />} />
       <div className="flex flex-1">
         <SideNav links={SideNavRoutes} />
-        <div className="w-full md:w-4/5 p-4">
+        {/* 74px -> Height of Navbar */}
+        <div className="w-full md:w-4/5 p-4 overflow-auto h-[calc(100vh-74px)]">
           <Routes>
             <Route path="approve-proposals" element={<CosmosApproveProposalslPage />} />
             <Route path="create-proposals" element={<CosmosCreateProposalPage />} />

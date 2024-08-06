@@ -1,14 +1,7 @@
-import React, { ReactNode, useState } from 'react';
+import React from 'react';
 import { convertTimestampToDateTime } from '../utils/dateTimeUtils';
-import GeneralModal from './GeneralModal';
 import { Proposal } from '../@types/CosmosProposalsTypes';
 import { Link } from 'react-router-dom';
-
-interface ModalDetails {
-  show: boolean;
-  title: string;
-  description: string | ReactNode;
-}
 
 interface CosmosProposalsPageProps {
   proposals: Proposal[];
@@ -27,20 +20,8 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
   approveAction,
   executeAction,
 }) => {
-  const [modalDetails, setModalDetails] = useState<ModalDetails>({
-    show: false,
-    title: '',
-    description: '',
-  });
   const currentPage = parseInt(`${offset / limit}`) + 1;
 
-  const handleModalClose = () => {
-    setModalDetails({
-      show: false,
-      title: '',
-      description: '',
-    });
-  };
 
   return (
     <>
@@ -51,8 +32,6 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
               <th>Proposal Id</th>
               <th>Title</th>
               <th>Description</th>
-              <th>Msgs</th>
-              <th>Threshold</th>
               <th>Status</th>
               <th>Expires At</th>
               <th>Actions</th>
@@ -65,34 +44,6 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
                 <th>{proposal.id}</th>
                 <td>{proposal.title}</td>
                 <td>{proposal.description}</td>
-                <td>
-                  <button
-                    className="d-btn"
-                    onClick={() => {
-                      setModalDetails({
-                        show: true,
-                        title: 'Msgs',
-                        description: <pre>{JSON.stringify(proposal.msgs, null, 2)}</pre>,
-                      });
-                    }}
-                  >
-                    Show Msgs
-                  </button>
-                </td>
-                <td>
-                  <button
-                    className="d-btn"
-                    onClick={() => {
-                      setModalDetails({
-                        show: true,
-                        title: 'Threshold',
-                        description: <pre>{JSON.stringify(proposal.threshold, null, 2)}</pre>,
-                      });
-                    }}
-                  >
-                    Show Threshold
-                  </button>
-                </td>
                 <td>{proposal.status}</td>
                 <td>{convertTimestampToDateTime(proposal.expires.at_time)}</td>
                 <td>
@@ -139,13 +90,6 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
           Next
         </button>
       </div>
-
-      <GeneralModal
-        show={modalDetails.show}
-        closeHandler={handleModalClose}
-        title={modalDetails.title}
-        description={modalDetails.description}
-      />
     </>
   );
 };

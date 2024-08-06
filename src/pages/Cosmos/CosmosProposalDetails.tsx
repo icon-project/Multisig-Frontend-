@@ -11,6 +11,7 @@ import useToast from '../../hooks/useToast';
 import { CosmosChains } from '../../constants/chains';
 import { Proposal } from '../../@types/CosmosProposalsTypes';
 import { useTx } from '../../hooks/useTx';
+import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 
 const CosmosProposalDetails = () => {
   const { id } = useParams();
@@ -240,75 +241,82 @@ const CosmosProposalDetails = () => {
     }
   }, [proposals, id]);
 
-  useEffect(() => {
-    console.log('proposals fetched', proposals, proposal);
-  });
-
   return (
-    <div>
+    <div className="proposal-details-container w-full h-full relative">
+      {!proposal ? (
+        <div className="loading-container absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <SpinningCircles fill="black" className="w-[64px] h-[64px]" />
+        </div>
+      ) : (
+        ''
+      )}
+
       {proposal && (
-        <div className=" pl-8 overflow-x-auto mx-auto p-8 pt-0  mt-5 text-gray-800">
-          {/* {loading ? <SpinningCircles fill="black" className="w-8 h-8 inline pl-3 fixed top-[100px] left-[300px]" /> : ''} */}
+        <div className="proposal-details text-gray-800 bg-[rgba(255,255,255,0.5)] shadow-sm w-full p-10 rounded-lg">
+          <h1 className="text-2xl font-bold mb-4">Proposal Details</h1>
+          <div className="mb-4">
+            <p>
+              <strong>Proposal ID:</strong> {id}
+            </p>
+            <p>
+              <strong>Title:</strong> {proposal.title}
+            </p>
 
-          <div className=" min-h-screen bg-[rgba(255,255,255,0.1)] shadow-sm rounded ">
-            <div className="max-w-3xl w-full  p-10 rounded-lg ">
-              <h1 className="text-2xl font-bold mb-4">Proposal Details</h1>
-              <div className="mb-4">
-                <p>
-                  <strong>Proposal ID:</strong> {id}
-                </p>
-                <p>
-                  <strong>Title:</strong> {proposal.title}
-                </p>
+            <p>
+              <strong>Proposer:</strong> {proposal.proposer}
+            </p>
 
-                <p>
-                  <strong>Proposer:</strong> {proposal.proposer}
-                </p>
+            <p>
+              <strong>Status:</strong> {proposal.status}
+            </p>
 
+            <p>
+              <strong>Expires At:</strong> {new Date(Number(proposal.expires.at_time) / 100000).toLocaleString()}
+            </p>
+          </div>
+          <hr className="my-4" />
+          <div className="message-section">
+            <h5 className="text-xl font-semibold mb-2">Messages:</h5>
+            {proposal.msgs.map((message, index) => (
+              <div key={index} className="mb-4 p-4 rounded-lg ">
                 <p>
-                  <strong>Status:</strong> {proposal.status}
+                  <strong>Contract Address:</strong> {message.wasm.execute.contract_addr}
                 </p>
-
-                <p>
-                  <strong>Expires At:</strong> {new Date(Number(proposal.expires.at_time) / 100000).toLocaleString()}
+                <p className="my-2">
+                  <strong>Message:</strong>
                 </p>
+                <pre className="p-2 rounded bg-[rgba(255,255,255,0.9)]">{decodeMessage(message.wasm.execute.msg)}</pre>
               </div>
-              <hr className="my-4 " />
-              <h5 className="text-xl font-semibold mb-2">Messages:</h5>
-              {proposal.msgs.map((message, index) => (
-                <div key={index} className="mb-4 p-4  rounded-lg ">
-                  <>
-                    <p>
-                      <strong>Contract Address:</strong> {message.wasm.execute.contract_addr}
-                    </p>
-                    <p>
-                      <strong>Message:</strong>
-                    </p>
-                    <pre className=" p-2 rounded">{decodeMessage(message.wasm.execute.msg)}</pre>
-                  </>
-                </div>
-              ))}
-              {proposal.status === 'open' && (
-                <button
-                  onClick={() => handleApproveClick(Number(proposal.id))}
-                  className="bg-blue-400 text-white px-4 py-2 rounded-lg  ml-2"
-                >
-                  Approve
-                </button>
-              )}
-              {proposal.status === 'passed' && (
-                <button
-                  onClick={() => handleExecuteClick(Number(proposal.id))}
-                  className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 float-right ml-2"
-                >
-                  Execute
-                </button>
-              )}
+            ))}
+          </div>
+          <div className="threshold-section">
+            <h5 className="text-xl font-semibold mb-2">Threshold:</h5>
+            <div className="mb-4 p-4 rounded-lg ">
+              <pre className="p-2 rounded bg-[rgba(255,255,255,0.9)]">
+                {JSON.stringify(proposal.threshold, null, 2)}
+              </pre>
             </div>
           </div>
-          <ToastContainer />
+          {proposal.status === 'open' && (
+            <button
+              onClick={() => handleApproveClick(Number(proposal.id))}
+              className="bg-blue-400 text-white px-4 py-2 rounded-lg  ml-2"
+            >
+              Approve
+            </button>
+          )}
+          {proposal.status === 'passed' && (
+            <button
+              onClick={() => handleExecuteClick(Number(proposal.id))}
+              className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
+            >
+              Execute
+            </button>
+          )}
         </div>
       )}
+
+      <ToastContainer />
     </div>
   );
 };
