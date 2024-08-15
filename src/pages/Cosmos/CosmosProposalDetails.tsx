@@ -38,7 +38,7 @@ const CosmosProposalDetails = () => {
   const decodeMessage = (msg: any) => {
     return JSON.stringify(JSON.parse(Base64.decode(msg)), null, 2);
   };
-  
+
   // execution
   const handleInjectiveExecute = async (proposalId: number) => {
     const chainId = state.activeCosmosChain.chainId;
@@ -274,14 +274,24 @@ const CosmosProposalDetails = () => {
                   {(message.wasm as WasmExecuteMsg).execute?.contract_addr ||
                     (message.wasm as WasmMigrateMsg).migrate?.contract_addr}
                 </p>
+                <p>
+                  {(message.wasm as WasmMigrateMsg).migrate ? (
+                    <>
+                      <strong>New Code ID:</strong> {(message.wasm as WasmMigrateMsg).migrate.new_code_id}
+                    </>
+                  ) : (
+                    ''
+                  )}
+                </p>
+
                 <p className="my-2">
                   <strong>Message:</strong>
                 </p>
                 <pre className="p-2 rounded bg-[rgba(255,255,255,0.9)]">
                   {(message.wasm as WasmExecuteMsg).execute?.msg || (message.wasm as WasmMigrateMsg).migrate?.msg
                     ? decodeMessage(
-                        (message.wasm as WasmExecuteMsg).execute?.msg || (message.wasm as WasmMigrateMsg).migrate?.msg,
-                      )
+                      (message.wasm as WasmExecuteMsg).execute?.msg || (message.wasm as WasmMigrateMsg).migrate?.msg,
+                    )
                     : ''}
                 </pre>
               </div>
