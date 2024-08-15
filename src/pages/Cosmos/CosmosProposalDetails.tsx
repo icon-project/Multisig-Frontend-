@@ -277,6 +277,19 @@ const CosmosProposalDetails = () => {
                 <p>
                   {(message.wasm as WasmMigrateMsg).migrate ? (
                     <>
+                      <strong>Message Type:</strong> Migrate
+                    </>
+                  ) : (message.wasm as WasmExecuteMsg).execute ? (
+                    <>
+                      <strong>Message Type:</strong> Execute
+                    </>
+                  ) : (
+                    ''
+                  )}
+                </p>
+                <p>
+                  {(message.wasm as WasmMigrateMsg).migrate ? (
+                    <>
                       <strong>New Code ID:</strong> {(message.wasm as WasmMigrateMsg).migrate.new_code_id}
                     </>
                   ) : (
