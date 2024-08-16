@@ -185,7 +185,7 @@ const CosmosProposalDetails = () => {
     const voteValue = 'yes';
     const txMsg = {
       vote: {
-        proposal_id: proposalId,
+        proposal_id: String(proposalId),
         vote: voteValue,
       },
     };
