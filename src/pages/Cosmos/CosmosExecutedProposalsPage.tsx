@@ -15,8 +15,10 @@ const CosmosExecutedProposalsPage = () => {
   const itemsPerPageLimit = 10;
   const [itemsListOffset, setItemsListOffset] = useState(0);
   const chainId = state.activeCosmosChain.chainId;
+  const [fetchingData, setFetchingData] = useState(false);
 
   const getProposals = async (limit: number = 10, offset: number = 0) => {
+    setFetchingData(true);
     const txMsg = {
       list_proposals: {
         limit: limit,
@@ -31,6 +33,7 @@ const CosmosExecutedProposalsPage = () => {
       );
       setProposalList(filteredProposals);
     }
+    setFetchingData(false);
   };
 
   const handlePaginationChanges = (offset: number) => {
@@ -43,6 +46,10 @@ const CosmosExecutedProposalsPage = () => {
     }
   }, [itemsListOffset, chainId, address]);
 
+  useEffect(() => {
+    setProposalList([]);
+  }, [chainId]);
+
   return (
     <div className="cosmos-approval-page w-full m-auto bg-[rgba(255,255,255,0.5)] p-4 rounded flex flex-col items-center">
       <div className="mt-4 w-full max-w-[1600px]">
@@ -50,6 +57,7 @@ const CosmosExecutedProposalsPage = () => {
           proposals={proposalList}
           limit={itemsPerPageLimit}
           offset={itemsListOffset}
+          loading={fetchingData}
           handleOffsetChange={handlePaginationChanges}
         />
       </div>

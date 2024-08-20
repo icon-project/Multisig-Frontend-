@@ -7,6 +7,7 @@ interface CosmosProposalsPageProps {
   proposals: Proposal[];
   limit: number;
   offset: number;
+  loading?: boolean;
   handleOffsetChange: (offset: number) => void;
   approveAction?: (proposalId: number) => void;
   executeAction?: (proposalId: number) => void;
@@ -16,12 +17,12 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
   proposals,
   limit,
   offset,
+  loading = false,
   handleOffsetChange,
   approveAction,
   executeAction,
 }) => {
   const currentPage = parseInt(`${offset / limit}`) + 1;
-
 
   return (
     <>
@@ -39,6 +40,11 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
             </tr>
           </thead>
           <tbody>
+            <tr className="data-loading-details text-center font-semibold">
+              {loading && <td colSpan={7}>Loading...</td>}
+              {!loading && proposals.length === 0 && <td colSpan={7}>No proposals to display.</td>}
+            </tr>
+
             {proposals.map((proposal: Proposal, index: number) => (
               <tr key={index}>
                 <th>{proposal.id}</th>
