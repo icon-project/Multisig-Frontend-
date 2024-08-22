@@ -105,7 +105,7 @@ const CosmosLayoutPage = () => {
             <Route path="create-proposals" element={<CosmosCreateProposalPage />} />
             <Route path="execute-proposals" element={<CosmosExecuteProposalslPage />} />
             <Route path="executed-proposals" element={<CosmosExecutedProposalsPage />} />
-            <Route path="proposals/:id" element={<CosmosProposalDetails />} />
+            <Route path="proposals/:proposalChainName/:id" element={<CosmosProposalDetails />} />
 
             <Route path="*" element={<Navigate to="approve-proposals" replace />} />
           </Routes>
