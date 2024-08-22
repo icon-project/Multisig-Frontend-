@@ -243,6 +243,8 @@ const CosmosProposalDetails = () => {
   useEffect(() => {
     if (id && chainName === proposalChainName) {
       getProposalDetails(parseInt(id));
+    } else {
+      setProposal(undefined);
     }
   }, [id, chainName, proposalChainName]);
 
