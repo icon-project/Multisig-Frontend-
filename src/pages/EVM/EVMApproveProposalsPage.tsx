@@ -48,6 +48,7 @@ const EVMApproveProposalsPage = () => {
   const [proposal_data, setProposalData] = useState<Proposal[]>([]);
   const [thres, setThresh] = useState<number>(0);
   const [owner, setOwner] = useState<string[]>([]);
+  const [fetchingData, setFetchingData] = useState(false);
 
   function generateSignature() {
     if (!signer || !signer._address) {
@@ -135,6 +136,7 @@ const EVMApproveProposalsPage = () => {
   };
   const fetchData = async () => {
     try {
+      setFetchingData(true);
       const data = await loadProposalData();
       let filteredData = data;
       if (chainId !== 0) {
@@ -145,6 +147,8 @@ const EVMApproveProposalsPage = () => {
       setProposalData(paginatedData);
     } catch (error) {
       console.error('Error fetching proposal data:', error);
+    } finally {
+      setFetchingData(false);
     }
   };
 
@@ -192,6 +196,7 @@ const EVMApproveProposalsPage = () => {
           proposal_data={proposal_data}
           limit={itemsPerPageLimit}
           offset={itemsListOffset}
+          loading={fetchingData}
           handleOffsetChange={handlePaginationChanges}
           approveAction={handleApprove}
         />

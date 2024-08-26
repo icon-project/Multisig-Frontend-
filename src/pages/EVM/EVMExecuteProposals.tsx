@@ -27,6 +27,7 @@ const EVMExecuteProposals = () => {
   const itemsPerPageLimit = 5;
   const [itemsListOffset, setItemsListOffset] = useState(0);
   let contract = new ethers.Contract(contractAddress, abi, signer);
+  const [fetchingData, setFetchingData] = useState(false);
 
   const handleExecute = async (proposal: any) => {
     setLoading(true);
@@ -44,6 +45,7 @@ const EVMExecuteProposals = () => {
   };
   const fetchFilteredData = async () => {
     try {
+      setFetchingData(true);
       const data = await loadProposalData();
 
       let filteredData = data.filter((proposal: any) => proposal.status === 'Passed');
@@ -51,6 +53,8 @@ const EVMExecuteProposals = () => {
       setProposalData(paginatedData);
     } catch (error) {
       console.error('Error fetching proposal data:', error);
+    } finally {
+      setFetchingData(false);
     }
   };
   const handlePaginationChanges = (offset: number) => {
@@ -86,6 +90,7 @@ const EVMExecuteProposals = () => {
             proposal_data={proposal_data}
             limit={itemsPerPageLimit}
             offset={itemsListOffset}
+            loading={fetchingData}
             handleOffsetChange={handlePaginationChanges}
             approveAction={handleExecute}
           />

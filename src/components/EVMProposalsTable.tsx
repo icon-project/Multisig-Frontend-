@@ -34,6 +34,7 @@ interface EVMProposalsPageProps {
   proposal_data: Proposal[];
   limit: number;
   offset: number;
+  loading?: boolean;
   handleOffsetChange: (offset: number) => void;
   approveAction?: (hash: string) => void;
   executeAction?: (hash: string) => void;
@@ -43,6 +44,7 @@ const EVMProposalsTable: React.FC<EVMProposalsPageProps> = ({
   proposal_data,
   limit,
   offset,
+  loading = false,
   handleOffsetChange,
   approveAction,
   executeAction,
@@ -77,8 +79,12 @@ const EVMProposalsTable: React.FC<EVMProposalsPageProps> = ({
             </tr>
           </thead>
           <tbody>
-            {proposal_data.length > 0 ? (
-              proposal_data.map((proposal: Proposal, index: number) => (
+            <tr className="data-loading-details text-center font-semibold">
+              {loading && <td colSpan={7}>Loading...</td>}
+              {!loading && proposal_data.length === 0 && <td colSpan={7}>No proposals to display.</td>}
+            </tr>
+
+            {proposal_data.map((proposal: Proposal, index: number) => (
                 <tr key={index} className="">
                   <td className=" ">{proposal.proposal}</td>
 
@@ -104,12 +110,7 @@ const EVMProposalsTable: React.FC<EVMProposalsPageProps> = ({
                     </Link>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td className="text-center">No proposals</td>
-              </tr>
-            )}
+              ))}
           </tbody>
         </table>
       </div>

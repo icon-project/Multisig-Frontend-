@@ -17,9 +17,11 @@ const EVMExecutedProposals = () => {
 
   const itemsPerPageLimit = 5;
   const [itemsListOffset, setItemsListOffset] = useState(0);
+  const [fetchingData, setFetchingData] = useState(false);
 
   const fetchFilteredData = async () => {
     try {
+      setFetchingData(true);
       const data = await loadProposalData();
 
       let filteredData = data.filter((proposal: any) => proposal.status === 'Executed');
@@ -27,6 +29,8 @@ const EVMExecutedProposals = () => {
       setProposalData(paginatedData);
     } catch (error) {
       console.error('Error fetching proposal data:', error);
+    } finally {
+      setFetchingData(false);
     }
   };
   const handlePaginationChanges = (offset: number) => {
@@ -50,6 +54,7 @@ const EVMExecutedProposals = () => {
             proposal_data={proposal_data}
             limit={itemsPerPageLimit}
             offset={itemsListOffset}
+            loading={fetchingData}
             handleOffsetChange={handlePaginationChanges}
           />
         </div>
