@@ -5,21 +5,17 @@ import { abi } from '../../abi/SAFE_ABI';
 
 import EVMProposalsTable from '../../components/EVMProposalsTable.tsx';
 import useToast from '../../hooks/useToast';
-import { testconfig, mainconfig } from '../../config';
 import { getEthereumContractByChain } from '../../constants/contracts';
-import { getChainId } from '@wagmi/core';
 import { evmExecuteContractCall } from '../../services/evmServices.ts';
 import { loadProposalData } from '../../utils/loadproposaldata';
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
-
-const APP_ENV = import.meta.env.VITE_APP_ENV;
+import { useChainId } from 'wagmi';
 
 const EVMExecuteProposals = () => {
   const [loading, setLoading] = useState(false);
   const { toast, ToastContainer } = useToast();
-  const config = APP_ENV == 'dev' ? testconfig : mainconfig;
   const signer = useEthersSigner();
-  const chainId = getChainId(config); // account, chainid, metamask
+  const chainId = useChainId();
   const [proposal_data, setProposalData] = useState<any[]>([]);
   const contractAddress = getEthereumContractByChain(chainId.toString());
   console.log('Chain id and contract address ', chainId, contractAddress);
@@ -47,8 +43,7 @@ const EVMExecuteProposals = () => {
     try {
       setFetchingData(true);
       const data = await loadProposalData();
-
-      let filteredData = data.filter((proposal: any) => proposal.status === 'Passed');
+      const filteredData = data.filter((proposal) => proposal.chain === chainId.toString() && proposal.status === 'Passed');
       const paginatedData = filteredData.slice(itemsListOffset, itemsListOffset + itemsPerPageLimit);
       setProposalData(paginatedData);
     } catch (error) {
@@ -62,14 +57,8 @@ const EVMExecuteProposals = () => {
   };
 
   useEffect(() => {
-    console.log('Current chain ID:', chainId);
-    let address = contractAddress;
-    console.log('Contract address:', address);
-  }, [chainId]);
-
-  useEffect(() => {
     fetchFilteredData();
-  }, []);
+  }, [chainId]);
 
   useEffect(() => {
     const getThreshold = async () => {

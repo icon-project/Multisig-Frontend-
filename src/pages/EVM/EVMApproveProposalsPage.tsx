@@ -10,10 +10,11 @@ import { getChainId } from '@wagmi/core';
 import { database } from '../../firebase';
 import { ref, set } from 'firebase/database';
 import { loadProposalData } from '../../utils/loadproposaldata';
-const APP_ENV = import.meta.env.VITE_APP_ENV;
-
 import SpinningCircles from 'react-loading-icons/dist/esm/components/spinning-circles';
 import { evmApproveContractCall } from '../../services/evmServices.ts';
+import { useChainId } from 'wagmi';
+
+const APP_ENV = import.meta.env.VITE_APP_ENV;
 
 type Proposal = {
   status: string;
@@ -43,7 +44,7 @@ const EVMApproveProposalsPage = () => {
   const [itemsListOffset, setItemsListOffset] = useState(0);
   const { toast, ToastContainer } = useToast();
   const signer = useEthersSigner();
-  const [chainId, setChainId] = useState<Number>(0);
+  const chainId = useChainId();
   const [contractAddress, setContractAddress] = useState<string>('');
   const [proposal_data, setProposalData] = useState<Proposal[]>([]);
   const [thres, setThresh] = useState<number>(0);
@@ -134,15 +135,14 @@ const EVMApproveProposalsPage = () => {
       setLoading(false);
     }
   };
+
   const fetchData = async () => {
     try {
       setFetchingData(true);
       const data = await loadProposalData();
-      let filteredData = data;
-      if (chainId !== 0) {
-        filteredData = data.filter((p) => p.chain === chainId.toString());
-      }
-
+      const filteredData = data.filter(
+        (proposal) => proposal.chain === chainId.toString() && proposal.status === 'Open',
+      );
       const paginatedData = filteredData.slice(itemsListOffset, itemsListOffset + itemsPerPageLimit);
       setProposalData(paginatedData);
     } catch (error) {
@@ -160,17 +160,9 @@ const EVMApproveProposalsPage = () => {
     if (signer) {
       let chain: Number = getChainId(config);
       const contractAddress = getEthereumContractByChain(chain.toString());
-
-      setChainId(chain);
       setContractAddress(contractAddress);
-
-      console.log(chain, contractAddress);
     }
   }, [signer, config]);
-
-  useEffect(() => {
-    fetchData();
-  }, [chainId]);
 
   useEffect(() => {
     fetchData();
