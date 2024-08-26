@@ -248,19 +248,21 @@ const EVMProposalDetails = () => {
               </div>
             </div>
           </div>
-          {proposal?.status === 'Passed' ? (
-            <button
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
-              onClick={() => handleExecute(proposal)}
-            >
-              Execute Proposal
-            </button>
-          ) : (
+
+          {proposal?.status === 'Open' && (
             <button
               className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
               onClick={() => handleApprove(proposal?.proposal)}
             >
               Approve Proposal
+            </button>
+          )}
+          {proposal?.status === 'Passed' && (
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
+              onClick={() => handleExecute(proposal)}
+            >
+              Execute Proposal
             </button>
           )}
 
