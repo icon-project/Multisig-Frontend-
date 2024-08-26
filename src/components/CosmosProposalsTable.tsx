@@ -2,6 +2,7 @@ import React from 'react';
 import { convertTimestampToDateTime } from '../utils/dateTimeUtils';
 import { Proposal } from '../@types/CosmosProposalsTypes';
 import { Link } from 'react-router-dom';
+import { useAppContext } from '../context/AppContext';
 
 interface CosmosProposalsPageProps {
   proposals: Proposal[];
@@ -23,6 +24,8 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
   executeAction,
 }) => {
   const currentPage = parseInt(`${offset / limit}`) + 1;
+  const { state } = useAppContext();
+  const chainName = state.activeCosmosChain.chainName;
 
   return (
     <>
@@ -67,7 +70,7 @@ const CosmosProposalsPage: React.FC<CosmosProposalsPageProps> = ({
                   </div>
                 </td>
                 <td>
-                  <Link to={`/cosmos/proposals/${proposal.id}`}>
+                  <Link to={`/cosmos/proposals/${chainName}/${proposal.id}`}>
                     <button className="d-btn">Details</button>
                   </Link>
                 </td>
