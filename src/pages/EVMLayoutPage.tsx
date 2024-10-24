@@ -40,7 +40,7 @@ const SideNavRoutes: SideNavRoutes[] = [
 const EVMLayoutPage = () => {
   return (
     <div className="cosmos-page flex flex-col min-h-screen">
-      <Navbar walletComponent={<ConnectButton />} />
+      <Navbar chainName='EVM' walletComponent={<ConnectButton />} />
       <div className="flex flex-1">
         <SideNav links={SideNavRoutes} />
         <div className="w-full md:w-4/5 p-4">

@@ -33,7 +33,11 @@ const SUILayoutPage = () => {
 
   return (
     <div className="cosmos-page flex flex-col min-h-screen">
-      <Navbar walletComponent={<ConnectButton />} additionalId={<div>Public Key: {walletPublicKey}</div>} />
+      <Navbar
+        chainName="SUI"
+        walletComponent={<ConnectButton />}
+        additionalId={<div>Public Key: {walletPublicKey}</div>}
+      />
       <div className="flex flex-1">
         <SideNav links={SideNavRoutes} />
         {/* 74px -> Height of Navbar */}
