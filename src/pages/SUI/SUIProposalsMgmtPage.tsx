@@ -204,12 +204,34 @@ const SUIProposalsMgmtPage = () => {
           <div className="d-modal-box">
             <h3 className="font-bold text-lg text-center">Sign and Approve</h3>
             <div className="d-modal-action flex-col">
-              <p className="overflow-auto">Select a text file with bytes data to sign and approve the proposal</p>
-
+              <p className="text-center font-semibold">Proposal Id: {selectedProposalId}</p>
+              <p className="overflow-auto text-center mt-1">
+                Select a text file or input text with bytes data to sign and approve the proposal
+              </p>
               <form method="dialog" className="mt-4">
-                <p className="text-center">Proposal Id: {selectedProposalId}</p>
                 <div className="flex justify-center mt-4">
-                  <input type="file" name="signature-msg" onChange={(e: any) => handleFileChosen(e.target.files[0])} />
+                  <textarea
+                    placeholder="Enter bytes data here..."
+                    name="messageInput"
+                    value={messageInput}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMessageInput(e.target.value)}
+                    className="w-full max-w-[300px] bg-slate-100 p-2"
+                    rows={4}
+                  />
+                </div>
+                <div className="max-w-[300px] flex items-center gap-4 m-auto my-4">
+                  <div className="w-full h-[2px] bg-[rgba(0,0,0,0.4)]"></div>
+                  <div className="font-bold">OR</div>
+                  <div className="w-full h-[2px] bg-[rgba(0,0,0,0.4)]"></div>
+                </div>
+                <div className="flex justify-center mt-4">
+                  <input
+                    type="file"
+                    name="signature-msg"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      if (e.target.files) handleFileChosen(e.target.files[0]);
+                    }}
+                  />
                 </div>
                 <div className="flex justify-center gap-4 mt-4">
                   <button className="d-btn bg-blue-500 text-white" onClick={handleApproveAction}>
