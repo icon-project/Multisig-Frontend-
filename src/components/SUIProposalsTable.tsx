@@ -54,7 +54,7 @@ const SUIProposalsTable: React.FC<CosmosProposalsPageProps> = ({
                 <th>{proposal.id}</th>
                 <td>{proposal.title}</td>
                 <td>{proposal.is_digest ? 'True' : 'False'}</td>
-                <td>{proposal.approved ? 'Approve' : '...'}</td>
+                <td>{proposal.approved ? 'Approved' : '...'}</td>
                 <td>
                   <div className="flex gap-2">
                     {approveAction && !proposal.approved && (
