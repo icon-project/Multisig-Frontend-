@@ -1,15 +1,23 @@
-FROM node:20-alpine
-RUN mkdir -p /app
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
-RUN yarn
-RUN npm i -g serve
+COPY package.json yarn.lock ./
+
+RUN yarn install
 
 COPY . .
-COPY .env .
+
+RUN yarn run build
+
+FROM node:22-alpine AS production
+
+WORKDIR /app
+
+RUN npm install -g serve
+
+COPY --from=build /app/dist /app/dist
 
 EXPOSE 3010
 
-# Specify the command to run your application
-CMD ["npm", "run", "dev"]
+CMD ["serve", "-s", "/app/dist", "-l", "3010"]
