@@ -95,7 +95,7 @@ const CosmosLayoutPage = () => {
         </div>
       )}
 
-      <Navbar walletComponent={<CosmosWalletWidget />} />
+      <Navbar chainName="COSMOS" walletComponent={<CosmosWalletWidget />} />
       <div className="flex flex-1">
         <SideNav links={SideNavRoutes} />
         {/* 74px -> Height of Navbar */}
