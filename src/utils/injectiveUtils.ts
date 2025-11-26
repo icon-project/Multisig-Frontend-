@@ -25,7 +25,7 @@ export const executeInjectiveContractCall = async (
   try {
     /** 1. Init wallet strategy (auto-detects actual wallet type) */
     const walletStrategy = new WalletStrategy({
-      chainId: InjectiveChainId.Mainnet,  
+      chainId: chainId as InjectiveChainId,  
       strategies: {}            // example: 'injective-1' or 'injective-888'
     });
 
