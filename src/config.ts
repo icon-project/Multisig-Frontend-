@@ -27,7 +27,7 @@ export const mainconfig = createConfig({
   },
 });
 export const testconfig = createConfig({
-  chains: [baseSepolia, optimismSepolia, sepolia, avalancheFuji],
+  chains: [baseSepolia, optimismSepolia, sepolia, avalancheFuji, arbitrumSepolia],
   transports: {
     [sepolia.id]: http(),
     [baseSepolia.id]: http(),

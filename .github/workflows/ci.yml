@@ -1,0 +1,31 @@
+name: CI with Docker Compose
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    name: Build and Test
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Build and run docker compose services
+        run: docker compose up --build -d
+
+      - name: Wait and sleep for 10 seconds
+        run: sleep 10 # Wait for services to be fully up
+
+      - name: Stop and remove docker compose services
+        if: always()
+        run: docker compose down
