@@ -55,14 +55,14 @@ export const executeInjectiveContractCall = async (
     });
 
     /** 5. Broadcast (handles Ledger, Keplr, EIP-712, gas, nonce, timeout, etc.) */
-    const txHash = await msgBroadcaster.broadcast({
+    const tx = await msgBroadcaster.broadcast({
       msgs: msgExec,
       injectiveAddress: (await walletStrategy.getAddresses())[0],
     });
 
-    console.log('Transaction hash:', txHash);
+    console.log('Transaction:', tx);
 
-    return "txhash"
+    return tx.txHash;
   } catch (error) {
     console.error('Contract execution error:', error);
     throw error;
