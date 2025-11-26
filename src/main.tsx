@@ -18,7 +18,7 @@ const assetsInUse = ENV === 'prod' ? assets : testnetAssets;
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider>
-      <ChainProvider chains={chainsInUse} assetLists={assetsInUse} wallets={wallets}>
+      <ChainProvider chains={chainsInUse} assetLists={assetsInUse} wallets={wallets} throwErrors={false}>
         <AppProvider>
           <App />
         </AppProvider>
