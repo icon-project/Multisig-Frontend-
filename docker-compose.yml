@@ -1,0 +1,9 @@
+services:
+  multisig-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3010:3010'
+    env_file:
+      - .env
